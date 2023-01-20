@@ -1,0 +1,46 @@
+
+start = eid-pattern
+
+eid-pattern = $eid-pattern .within eid-structure
+
+
+$eid-pattern /= [
+  uri-code: 1,
+  SSP: dtn-ssp
+]
+dtn-ssp = dtn-wkssp-exact / dtn-fullssp-parts
+dtn-fullssp-parts = [
+  dtn-authority-pat,
+  dtn-path-pat,
+]
+dtn-authority-pat = dtn-exact / regexp / multi-wildcard
+; Only the last path segment is allowed a multi-wildcard
+dtn-path-pat = (
+  * dtn-single-pat,
+  ? multi-wildcard
+)
+dtn-single-pat = dtn-exact / regexp / wildcard
+
+dtn-exact = tstr
+wildcard = true
+multi-wildcard = false
+
+; Exact match for well-known SSP
+dtn-wkssp-exact = $dtn-wkssp .within uint
+$dtn-wkssp /= 0  ; For "none"
+
+
+$eid-pattern /= [
+  uri-code: 2,
+  SSP: ipn-ssp
+]
+ipn-ssp = [
+  2*4 ipn-part-pat,
+]
+
+ipn-part-pat = uint / ipn-range / true
+ipn-range = [ 1* ipn-interval-pair ]
+ipn-interval-pair = (
+  offset: uint,
+  length: uint .gt 0,
+)

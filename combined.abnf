@@ -1,0 +1,53 @@
+
+eid-pattern = ipn-pattern / dtn-pattern
+
+; Shared wildcard rules
+wildcard = "*"
+multi-wildcard = "**"
+
+
+dtn-pattern = "dtn:" dtn-ssp
+dtn-ssp = dtn-wkssp-exact / dtn-fullssp
+
+; A node-name authority with some number of demux path segments
+dtn-fullssp = "//" dtn-authority-pat "/" dtn-path-pat
+dtn-authority-pat = exact / regexp / multi-wildcard
+; Only the last path segment is allowed a multi-wildcard
+dtn-path-pat = *( dtn-single-pat "/" ) dtn-last-pat
+dtn-single-pat = exact / regexp / wildcard
+dtn-last-pat = dtn-single-pat / multi-wildcard
+
+; Exact-match text, which excludes gen-delims characters
+exact = *pchar
+; Regular expression for the whole SSP within the gen-delims brackets
+; with an allowance for more regexp characters
+regexp = "[" *( pchar / "^" ) "]"
+
+; Exact match for well-known SSP
+dtn-wkssp-exact = "none"
+
+
+ipn-pattern = "ipn:" ipn-ssp
+; Up to three preceding components with a service number
+ipn-ssp = 1*3( ipn-part-pat nbr-delim ) ipn-part-pat
+ipn-part-pat = ipn-number / ipn-range / wildcard
+
+ipn-number = 1*DIGIT
+
+ipn-range = "[" ipn-interval *( "," ipn-interval ) "]"
+ipn-interval = ipn-number [ "-" ipn-number ]
+; From RFC 3986
+pchar = unreserved / pct-encoded / sub-delims / ":" / "@"
+pct-encoded   = "%" HEXDIG HEXDIG
+unreserved    = ALPHA / DIGIT / "-" / "." / "_" / "~"
+reserved      = gen-delims / sub-delims
+gen-delims    = ":" / "/" / "?" / "#" / "[" / "]" / "@"
+sub-delims    = "!" / "$" / "&" / "'" / "(" / ")"
+              / "*" / "+" / "," / ";" / "="
+
+; From RFC 5234
+DIGIT = %x30-39
+
+; From RFC 9171
+nbr-delim = "."
+
