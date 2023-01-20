@@ -1,0 +1,15 @@
+; From RFC 3986
+pchar = unreserved / pct-encoded / sub-delims / ":" / "@"
+pct-encoded   = "%" HEXDIG HEXDIG
+unreserved    = ALPHA / DIGIT / "-" / "." / "_" / "~"
+reserved      = gen-delims / sub-delims
+gen-delims    = ":" / "/" / "?" / "#" / "[" / "]" / "@"
+sub-delims    = "!" / "$" / "&" / "'" / "(" / ")"
+              / "*" / "+" / "," / ";" / "="
+
+; From RFC 5234
+DIGIT = %x30-39
+
+; From RFC 9171
+nbr-delim = "."
+
