@@ -27,4 +27,4 @@
 *** Unused rule ext-data-previous-node
 *** Unused rule ext-data-bundle-age
 *** Unused rule ext-data-hop-count
-[1, [false, true, true, true, true, false]]
+[1, [35("tic"), false]]
