@@ -26,8 +26,8 @@ Bundle Protocol Endpoint ID Patterns
     <keyword>PKIX</keyword>
     <abstract>
       <t>
-This document extends the Endpoint ID (EID) concept into an EID Pattern, which is used to categorize any EID as matching a specific pattern or not.
-EID Patterns are suitable for expressing agent configuration, for being used on-the-wire by DTN protocols, and for being easily understandable by a layperson.
+This document extends the Bundle Protocol Endpoint ID (EID) concept into an EID Pattern, which is used to categorize any EID as matching a specific pattern or not.
+EID Patterns are suitable for expressing configuration, for being used on-the-wire by protocols, and for being easily understandable by a layperson.
 EID Patterns include scheme-specific optimizations for expressing set membership and each scheme pattern includes text and CBOR encoding forms; the pattern for the "ipn" EID scheme being designed to be highly compressible in its CBOR form.
 This document also defines a Public Key Infrastructure Using X.509 (PKIX) Other Name form to contain an EID Pattern and a handling rule to use a pattern to match an EID.
       </t>
@@ -37,8 +37,8 @@ This document also defines a Public Key Infrastructure Using X.509 (PKIX) Other 
     <section anchor="sec-intro">
       <name>Introduction</name>
       <t>
-The Bundle Protocol (BP) Version 7 specification <xref target="RFC9171"/> defines text and CBOR encoding forms of an Endpoint ID (EID) which is used as both a source and a destination for individual bundles.
-BP Agent implementations have necessarily used methods of defining patterns for matching multiple EIDs in order to configure routing, forwarding, and delivery of bundles, but these have not yet been standardized and do not have a concise form suitable for on-the-wire messaging.
+The Bundle Protocol (BP) Version 7 specification of <xref target="RFC9171"/> defines Uniform Resource Identifier (URI) text and Concise Binary Object Representation (CBOR) encoding forms of an Endpoint ID (EID) which is used as both a source and a destination for individual bundles, the BP Security specification of <xref target="RFC9172"/> uses EIDs as security sources, and the TCP Convergence Layer (TCPCL) of <xref target="RFC9174"/> uses EIDs for peer identification.
+BP Agent implementations have necessarily used methods of defining patterns for matching multiple EIDs in order to configure routing, forwarding, and delivery of bundles, security policy, and convergence layer policy, but these have not yet been standardized and do not have a concise form suitable for on-the-wire messaging.
       </t>
       <t>
 In much the same way that the Classless Inter-domain Routing (CIDR) mechanism of <xref target="RFC4632"/> can be used to aggregate a contiguous and bit-aligned block of IP addresses in a concise unit (encoded as text or otherwise), this concept of EID Pattern is used to aggregate a set of EIDs into a single concise unit.
@@ -81,8 +81,6 @@ The entire ABNF structure can be extracted from the XML version of this document
 The following initial fragment defines the top-level rules of this document's ABNF.
         </t>
         <sourcecode type="abnf">
-eid-pattern = ipn-pattern / dtn-pattern
-
 ; Shared wildcard rules
 wildcard = "*"
 multi-wildcard = "**"
@@ -105,8 +103,6 @@ The following initial fragment defines the top-level symbols of this document's 
         </t>
         <sourcecode type="cddl">
 start = eid-pattern
-
-eid-pattern = $eid-pattern .within eid-structure
         </sourcecode>
         <t>
 From the document <xref target="RFC9171"/> the definition is taken for <tt>eid-structure</tt>.
@@ -134,14 +130,80 @@ See <xref target="sec-security"/> for details on handling concerns.
       <t>
 For the pattern forms defined in this document, the exact-match pattern's text form is identical with its matching EID.
 This behavior is not required or necessary but is a convenient side effect of the text definitions and makes the EID Pattern a proper superset of EID.
-The IPN pattern has an exact-match CBOR form which is identical to its matching EID, while the DTN pattern CBOR form is always as a component pattern array.
+Because of its structure, used to simplify processing, the CBOR form for EID Pattern will never be identical to or a superset of EID.
       </t>
+      <section anchor="sec-pattern-top">
+        <name>Pattern Set and Pattern Items</name>
+        <t>
+The overall concept of this patterning structure is that one "EID Pattern" can be used to match any combination of EIDs.
+This is accomplished by a single pattern being composed of independent pattern items, each with scheme-specific rules and syntax.
+        </t>
+        <t>
+The conceptual model of the EID Pattern is as a non-empty sequence of scheme-specific pattern items.
+This sequence is ordered in order to make translating between forms deterministic, as each encoding form necessarily has a specific order of items.
+        </t>
+        <t>
+Although the encoding forms are necessarily ordered, the matching logic for an EID Pattern is independent of the order of its items.
+An EID pattern <bcp14>SHALL</bcp14> be considered to match an EID if any of its constituent items match the EID.
+        </t>
+        <t>
+Because matching against an "any-scheme" item (see <xref target="sec-pattern-anyscheme"/>) will necessarily make any scheme-specific patterns redundant, the text and CBOR forms of the EID pattern have a compressed form of any-scheme matching and disallow combining the any-scheme pattern with others.
+        </t>
+        <t>
+The text form of the EID pattern is the following, which uses the URI reserved character "|" to delimit items in the sequence.
+Because the delimiter is used between items, an EID pattern with one item has an identical text form to that item.
+        </t>
+        <sourcecode type="abnf">
+eid-pattern = any-scheme-item / eid-pattern-set
+eid-pattern-set = eid-pattern-item *( "|" eid-pattern-item )
+; Limited to these schemes for now
+eid-pattern-item = ipn-pat-item / dtn-pat-item
+        </sourcecode>
+        <t>
+The CBOR form of the EID pattern is the following, which uses an enveloping array to contain the items.
+Although the any-scheme pattern includes a compressed encoding, avoiding the outer array, it still follows the conceptual model of a set of items (in which there is allowed only one item).
+Because there is otherwise always an outer array, there is no concept of a "bare" scheme-specific pattern item in the CBOR form.
+        </t>
+        <sourcecode type="cddl">
+eid-pattern = any-scheme-item / eid-pattern-set
+eid-pattern-set = [1* eid-pattern-item]
+eid-pattern-item = $eid-pat-item .within eid-structure
+        </sourcecode>
+      </section>
+      <section anchor="sec-pattern-anyscheme">
+        <name>Any-Scheme Pattern Item</name>
+        <t>
+The simplest pattern item is one which will match any EID of any URI scheme.
+Because this necessarily disallows scheme-specific logic, the any-scheme pattern has only its identity with no parameters or conceptual structure.
+        </t>
+        <t>
+When the any-scheme item is present in an EID pattern, it <bcp14>SHALL</bcp14> be the only item in the pattern.
+Any other, scheme-specific items would be redundant and unnecessary when combined with the any-scheme item.
+        </t>
+        <t>
+The text form of the any-scheme pattern is the following exact text.
+As defined in <xref target="sec-pattern-top"/>, when this text form is present it cannot be combined with other items.
+        </t>
+        <sourcecode type="abnf">
+any-scheme-item = "***"
+        </sourcecode>
+        <t>
+The CBOR form of the any-scheme pattern is the following exact value.
+As defined in <xref target="sec-pattern-top"/>, when this CBOR form is present it occurs outside of an enveloping array and thus cannot be combined with other items.
+        </t>
+        <sourcecode type="cddl">
+any-scheme-item = true
+        </sourcecode>
+      </section>
       <section anchor="sec-pattern-dtn">
-        <name>DTN Scheme Pattern</name>
+        <name>DTN Scheme Pattern Item</name>
         <t>
 As defined in <xref section="4.2.5.1.1" target="RFC9171"/>, DTN scheme EIDs have an authority (node name) part and a sequence of path (service demux) segment components.
 Combining these components together, the whole EID SSP is treated as a sequence of these unstructured text components.
 Because of the lack of more specific structure, outside of match-all wildcards only a generic pattern matching mechanism like a regular expression can be used.
+        </t>
+        <t>
+For the remainder of this document, the term "DTN pattern" is used as shorthand to mean the EID pattern item used for the "dtn" scheme.
         </t>
         <t>
 The conceptual model of the DTN pattern is that the node name and the sequence of path segments can be matched as one of:
@@ -219,7 +281,7 @@ Because neither of those are required to be present in a DTN pattern and the ast
           <figure anchor="fig-pattern-dtn-text">
             <name>DTN Pattern ABNF Schema</name>
             <sourcecode markers="false" type="abnf">
-dtn-pattern = "dtn:" dtn-ssp
+dtn-pat-item = "dtn:" dtn-ssp
 dtn-ssp = dtn-wkssp-exact / dtn-fullssp
 
 ; A node-name authority with some number of demux path segments
@@ -244,7 +306,7 @@ dtn-wkssp-exact = "none"
 A concrete use of this text form is illustrated in this example:
           </t>
           <sourcecode>
-dtn://node/[%5Eanchored]/other%20part/**
+dtn://node-name/[%5Eanchored]/other%20part/**
       &lt;-- P --&gt;  &lt;--- P ---&gt;  &lt;--- P ----&gt;
 </sourcecode>
           <t>
@@ -285,7 +347,7 @@ The CBOR form of the DTN pattern is not as compressible as the IPN pattern, but 
           <figure anchor="fig-pattern-dtn-cbor">
             <name>DTN Pattern CDDL Schema</name>
             <sourcecode markers="false" type="cddl">
-$eid-pattern /= [
+$eid-pat-item /= [
   uri-code: 1,
   SSP: dtn-ssp
 ]
@@ -314,10 +376,13 @@ $dtn-wkssp /= 0  ; For "none"
         </section>
       </section>
       <section anchor="sec-pattern-ipn">
-        <name>IPN Scheme Pattern</name>
+        <name>IPN Scheme Pattern Item</name>
         <t>
 As defined in <xref section="4.2.5.1.2" target="RFC9171"/> and updated in <xref target="I-D.ietf-dtn-ipn-update"/>, IPN scheme EIDs have a SSP which is divided into a bounded number of integer numeric components.
 Because of this, the pattern for IPN scheme EIDs is based on matching a numeric value or range for each component.
+        </t>
+        <t>
+For the remainder of this document, the term "IPN pattern" is used as shorthand to mean the EID pattern item used for the "ipn" scheme.
         </t>
         <t>
 The conceptual model of the IPN pattern is that each of the components of the SSP can be matched as one of:
@@ -398,7 +463,7 @@ The canonical text form of an IPN pattern <bcp14>SHALL</bcp14> order all range s
           <figure anchor="fig-pattern-ipn-text">
             <name>IPN Pattern ABNF Schema</name>
             <sourcecode markers="false" type="abnf">
-ipn-pattern = "ipn:" ipn-ssp
+ipn-pat-item = "ipn:" ipn-ssp
 ; Up to three preceding components with a service number
 ipn-ssp = 1*3( ipn-part-pat nbr-delim ) ipn-part-pat
 ipn-part-pat = ipn-number / ipn-range / wildcard
@@ -441,7 +506,7 @@ Another way to interpret these pairs is that each number indicates the length of
           <figure anchor="fig-pattern-ipn-cbor">
             <name>IPN Pattern CDDL Schema</name>
             <sourcecode markers="false" type="cddl">
-$eid-pattern /= [
+$eid-pat-item /= [
   uri-code: 2,
   SSP: ipn-ssp
 ]
@@ -634,6 +699,7 @@ The use of this OID is defined in <xref target="sec-tcpcl-cert-profile"/>.
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.5050.xml"/>
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.5912.xml"/>
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.6570.xml"/>
+        <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.9172.xml"/>
         <reference anchor="W3C-PAT" target="https://www.w3.org/2005/Incubator/wcl/matching.html">
           <front>
             <title>URI Pattern Matching for Groups of Resources</title>
@@ -695,29 +761,46 @@ END
       <name>Examples</name>
       <section anchor="sec-ex-pattern-dtn">
         <name>DTN Patterns</name>
+        <t>
+This section contains examples specific to the DTN pattern of <xref target="sec-pattern-dtn"/>.
+        </t>
         <section>
           <name>Exact Match</name>
           <t>
 This trivial example matches only one EID (which itself has the same text form)
-<tt>dtn://node/service</tt>
+          </t>
+<sourcecode type="eidpat">
+dtn://node/service
+</sourcecode>
+          <t>
 which has a CBOR form of:
             </t>
 <sourcecode type="cbor">
-[1, ["node", "service"]]
+[[1, ["node", "service"]]]
 </sourcecode>
           <t>
-An example of normalized matching is that the pattern <tt>dtn://node/service</tt> will still match the EIDs <tt>dtn://node/ser%76ice</tt> and <tt>dtn://no%64e/service</tt> because each component match is performed in percent-decoded and UTF-8 decoded form.
+An example of normalized matching is that the pattern
+          </t>
+<sourcecode type="eidpat">
+dtn://node/service
+</sourcecode>
+          <t>
+will still match the EIDs <tt>dtn://node/ser%76ice</tt> and <tt>dtn://no%64e/service</tt> because each component match is performed in percent-decoded and UTF-8 decoded form.
           </t>
         </section>
         <section>
           <name>Wildcards</name>
           <t>
 This example matches a single-segment service demux on a single node
-<tt>dtn://node/*</tt>
+          </t>
+<sourcecode type="eidpat">
+dtn://node/*
+</sourcecode>
+          <t>
 which has a CBOR form of:
           </t>
 <sourcecode type="cbor">
-[1, ["node", true]]
+[[1, ["node", true]]]
 </sourcecode>
           <t>
 That single wildcard will match the empty demux <tt>dtn://node/</tt> but will not match demux paths such as <tt>dtn://node/long/name</tt> or any more segments.
@@ -729,105 +812,195 @@ Or would it be better to handle that separately so that the above pattern does n
           </t></aside>
           <t>
 This example matches all service demux on a single node with a multi-wildcard
-<tt>dtn://node/**</tt>
+          </t>
+<sourcecode type="eidpat">
+dtn://node/**
+</sourcecode>
+          <t>
 which has a CBOR form of:
           </t>
 <sourcecode type="cbor">
-[1, ["node", false]]
+[[1, ["node", false]]]
 </sourcecode>
           <t>
 This example matches a service demux with a prefix segment "pre"
-<tt>dtn://node/pre/**</tt>
+          </t>
+<sourcecode type="eidpat">
+dtn://node/pre/**
+</sourcecode>
+          <t>
 which has a CBOR form of:
           </t>
 <sourcecode type="cbor">
-[1, ["node", "pre", false]]
+[[1, ["node", "pre", false]]]
 </sourcecode>
           <t>
 This example matches all node names having the same service demux
-<tt>dtn://**/some/serv</tt>
+          </t>
+<sourcecode type="eidpat">
+dtn://**/some/serv
+</sourcecode>
+          <t>
 which has a CBOR form of:
           </t>
 <sourcecode type="cbor">
-[1, [false, "some", "serv"]]
+[[1, [false, "some", "serv"]]]
 </sourcecode>
         </section>
         <section>
           <name>Regular Expression Match</name>
           <t>
 This example includes a single regular expression for single-segment service that starts with the letter "a" in the text form of
-<tt>dtn://**/[^a]</tt>
+          </t>
+<sourcecode type="eidpat">
+dtn://**/[^a]
+</sourcecode>
+          <t>
 which has a CBOR form of:
           </t>
 <sourcecode type="cbor">
-[1, [false, 35("^a")]]
+[[1, [false, 35("^a")]]]
 </sourcecode>
         </section>
       </section>
       <section anchor="sec-ex-pattern-ipn">
         <name>IPN Patterns</name>
+        <t>
+This section contains examples specific to the IPN pattern of <xref target="sec-pattern-ipn"/>.
+        </t>
         <section>
           <name>Exact Match</name>
           <t>
 This trivial example matches only one EID (which itself has the same text and CBOR forms)
-<tt>ipn:0.3.4</tt>
+          </t>
+<sourcecode type="eidpat">
+ipn:0.3.4
+</sourcecode>
+          <t>
 which has a CBOR form of:
           </t>
 <sourcecode type="cbor">
-[2, [0, 3, 4]]
+[[2, [0, 3, 4]]]
 </sourcecode>
         </section>
         <section>
           <name>Single Wildcard Match</name>
            <t>
 This example matches all service numbers on a single node
-<tt>ipn:0.3.*</tt>
+          </t>
+<sourcecode type="eidpat">
+ipn:0.3.*
+</sourcecode>
+          <t>
 which has a CBOR form of:
           </t>
 <sourcecode type="cbor">
-[2, [0, 3, true]]
+[[2, [0, 3, true]]]
 </sourcecode>
           <t>
 This example matches all no-authority nodes with the same service number
-<tt>ipn:*.4</tt>
+          </t>
+<sourcecode type="eidpat">
+ipn:*.4
+</sourcecode>
+          <t>
 which has a CBOR form of:
           </t>
 <sourcecode type="cbor">
-[2, [true, 4]]
+[[2, [true, 4]]]
 </sourcecode>
         </section>
         <section>
           <name>Range Match</name>
           <t>
 This example includes a single range over the service numbers <tt>ipn:0.3.0</tt> to <tt>ipn:0.3.19</tt> inclusive as
-<tt>ipn:0.3.[0-19]</tt>
+          </t>
+<sourcecode type="eidpat">
+ipn:0.3.[0-19]
+</sourcecode>
+          <t>
 which has a CBOR form of:
           </t>
 <sourcecode type="cbor">
-[2, [0, 3, [0, 20]]]
+[[2, [0, 3, [0, 20]]]]
 </sourcecode>
           <t>
 This example includes an offset range over the service numbers <tt>ipn:0.3.10</tt> to <tt>ipn:0.3.19</tt> inclusive as
-<tt>ipn:0.3.[10-19]</tt>
+          </t>
+<sourcecode type="eidpat">
+ipn:0.3.[10-19]
+</sourcecode>
+          <t>
 which has a CBOR form of:
           </t>
 <sourcecode type="cbor">
-[2, [0, 3, [10, 10]]]
+[[2, [0, 3, [10, 10]]]]
 </sourcecode>
           <t>
 This example includes multiple ranges of service numbers <tt>ipn:0.3.0</tt> to <tt>ipn:0.3.4</tt> and <tt>ipn:0.3.10</tt> to <tt>ipn:0.3.19</tt> inclusive as
-<tt>ipn:0.3.[0-4,10-19]</tt>
+          </t>
+<sourcecode type="eidpat">
+ipn:0.3.[0-4,10-19]
+</sourcecode>
+          <t>
 which has a CBOR form of:
           </t>
 <sourcecode type="cbor">
-[2, [0, 3, [0, 5, 5, 10]]]
+[[2, [0, 3, [0, 5, 5, 10]]]]
 </sourcecode>
           <t>
-An overlapping or contiguous pattern such as <tt>ipn:0.3.[0-9,10-19]</tt> or <tt>ipn:0.3.[0-15,10-19]</tt> or <tt>ipn:0.3.[10-19,0-9]</tt> would be normalized to <tt>ipn:0.3.[0-19]</tt>.
-          </t>
+An overlapping or contiguous pattern such as <tt>ipn:0.3.[0-9,10-19]</tt> or <tt>ipn:0.3.[0-15,10-19]</tt> or <tt>ipn:0.3.[10-19,0-9]</tt> would be normalized to
+           </t>
+<sourcecode type="eidpat">
+ipn:0.3.[0-19]
+</sourcecode>
           <t>
-An unordered pattern such as <tt>ipn:0.3.[10-19,0-4]</tt> would be normalized to <tt>ipn:0.3.[0-4,10-19]</tt>.
+An unordered pattern such as <tt>ipn:0.3.[10-19,0-4]</tt> would be normalized to
           </t>
+<sourcecode type="eidpat">
+ipn:0.3.[0-4,10-19]
+</sourcecode>
+        </section>
+      </section>
+      <section anchor="sec-ex-pattern-multi">
+        <name>Combined Patterns</name>
+        <t>
+This section contains examples of patterns combining items.
+        </t>
+        <section>
+          <name>Any-Scheme Match</name>
+          <t>
+This trivial example matches any possible EID.
+It's text form is:
+          </t>
+<sourcecode type="eidpat">
+***
+</sourcecode>
+          <t>
+and its CBOR form is:
+          </t>
+<sourcecode type="cbor">
+true
+</sourcecode>
+        </section>
+        <section>
+          <name>Multiple Scheme Match</name>
+          <t>
+This example combines exact match items for each scheme together in one pattern, it will match <tt>dtn://node/service</tt> and <tt>ipn:0.3.4</tt>
+It's text form is:
+          </t>
+<sourcecode type="eidpat">
+dtn://node/service|ipn:0.3.4
+</sourcecode>
+          <t>
+and its CBOR form is:
+          </t>
+<sourcecode type="cbor">
+[
+  [1, ["node", "service"]],
+  [2, [0, 3, 4]]
+]
+</sourcecode>
         </section>
       </section>
     </section>

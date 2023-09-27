@@ -128,7 +128,7 @@ if(TRUE)
     add_custom_command(
         OUTPUT "${URIVALIDERRORS_TXT}"
         DEPENDS "${DRAFT_NAME_XML}" "${SPLIT_ARTWORK}" "${CHECK_URI}" "${COMBINED_ABNF}"
-        COMMAND ${PYTHON} "${SPLIT_ARTWORK}" --lines "${DRAFT_NAME_XML}" "'//tt[(starts-with(.,\"dtn:\"))or(starts-with(.,\"ipn:\"))]'" "${CHECK_URI}" "${COMBINED_ABNF}" 2>"${URIVALIDERRORS_TXT}" 1>&2 || true
+        COMMAND ${PYTHON} "${SPLIT_ARTWORK}" --lines "${DRAFT_NAME_XML}" "'//sourcecode[@type=\"eidpat\"]|//tt[(starts-with(.,\"dtn:\"))or(starts-with(.,\"ipn:\"))]'" "${CHECK_URI}" "${COMBINED_ABNF}" 2>"${URIVALIDERRORS_TXT}" 1>&2 || true
     )
     add_custom_target(
         urivalid ALL

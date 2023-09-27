@@ -1,5 +1,6 @@
-ABNF
+
 abnf
+ABNF
 ASN
 BCP
 BP
@@ -22,12 +23,12 @@ demux
 disambiguating
 DNS
 dod
-DTN
 dtn
+DTN
 DTNOtherNames
 ECMA
-EID
 eid
+EID
 eidpattern
 EIDPATTERN
 EIDs
@@ -51,10 +52,11 @@ pre
 rangeset
 routable
 SMI
-SSP
 ssp
+SSP
 superset
 TBD
+TCP
 TCPCL
 TCPCLv
 uint
@@ -63,4 +65,3 @@ URIs
 UTF
 wkssp
 XPath
-
