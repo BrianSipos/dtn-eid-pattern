@@ -1,12 +1,19 @@
 
-eid-pattern = ipn-pattern / dtn-pattern
-
 ; Shared wildcard rules
 wildcard = "*"
 multi-wildcard = "**"
 
 
-dtn-pattern = "dtn:" dtn-ssp
+eid-pattern = any-scheme-item / eid-pattern-set
+eid-pattern-set = eid-pattern-item *( "|" eid-pattern-item )
+; Limited to these schemes for now
+eid-pattern-item = ipn-pat-item / dtn-pat-item
+
+
+any-scheme-item = "***"
+
+
+dtn-pat-item = "dtn:" dtn-ssp
 dtn-ssp = dtn-wkssp-exact / dtn-fullssp
 
 ; A node-name authority with some number of demux path segments
@@ -27,7 +34,7 @@ regexp = "[" *( pchar / "^" ) "]"
 dtn-wkssp-exact = "none"
 
 
-ipn-pattern = "ipn:" ipn-ssp
+ipn-pat-item = "ipn:" ipn-ssp
 ; Up to three preceding components with a service number
 ipn-ssp = 1*3( ipn-part-pat nbr-delim ) ipn-part-pat
 ipn-part-pat = ipn-number / ipn-range / wildcard

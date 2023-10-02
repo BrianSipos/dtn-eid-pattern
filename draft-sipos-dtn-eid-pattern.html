@@ -8,33 +8,31 @@
 <meta content="Brian Sipos" name="author">
 <meta content='
        
-This document extends the Endpoint ID (EID) concept into an EID Pattern, which is used to categorize any EID as matching a specific pattern or not.
-EID Patterns are suitable for expressing agent configuration, for being used on-the-wire by DTN protocols, and for being easily understandable by a layperson.
+This document extends the Bundle Protocol Endpoint ID (EID) concept into an EID Pattern, which is used to categorize any EID as matching a specific pattern or not.
+EID Patterns are suitable for expressing configuration, for being used on-the-wire by protocols, and for being easily understandable by a layperson.
 EID Patterns include scheme-specific optimizations for expressing set membership and each scheme pattern includes text and CBOR encoding forms; the pattern for the "ipn" EID scheme being designed to be highly compressible in its CBOR form.
 This document also defines a Public Key Infrastructure Using X.509 (PKIX) Other Name form to contain an EID Pattern and a handling rule to use a pattern to match an EID.
        
     ' name="description">
-<meta content="xml2rfc 3.16.0" name="generator">
+<meta content="xml2rfc 3.18.1" name="generator">
 <meta content="DTN" name="keyword">
 <meta content="PKIX" name="keyword">
 <meta content="draft-sipos-dtn-eid-pattern-00" name="ietf.draft">
 <!-- Generator version information:
-  xml2rfc 3.16.0
-    Python 3.10.6
-    appdirs 1.4.4
-    ConfigArgParse 1.5.3
-    google-i18n-address 2.5.2
-    html5lib 1.1
+  xml2rfc 3.18.1
+    Python 3.10.12
+    ConfigArgParse 1.7
+    google-i18n-address 3.1.0
     intervaltree 3.1.0
     Jinja2 3.1.2
-    lxml 4.9.2
-    MarkupSafe 2.1.2
+    lxml 4.9.3
+    platformdirs 3.11.0
     pycountry 22.3.5
     PyYAML 5.4.1
     requests 2.25.1
     setuptools 59.6.0
     six 1.16.0
-    wcwidth 0.2.6
+    wcwidth 0.2.8
 -->
 <link href="/home/runner/work/dtn-eid-pattern/dtn-eid-pattern/spec/draft-sipos-dtn-eid-pattern.xml" rel="alternate" type="application/rfc+xml">
 <link href="#copyright" rel="license">
@@ -64,7 +62,6 @@ This document also defines a Public Key Infrastructure Using X.509 (PKIX) Other 
 
 @viewport {
   zoom: 1.0;
-  width: extend-to-zoom;
 }
 @-ms-viewport {
   width: extend-to-zoom;
@@ -82,6 +79,7 @@ body {
   font-family: var(--font-sans);
   line-height: 1.6;
   scroll-behavior: smooth;
+  overflow-wrap: break-word;
 }
 .ears {
   display: none;
@@ -260,7 +258,8 @@ a[href]:hover {
   background-color: #f2f2f2;
 }
 figcaption a[href],
-a[href].selfRef {
+a[href].selfRef,
+.iref + a[href].internal {
   color: #222;
 }
 /* XXX probably not this:
@@ -311,6 +310,9 @@ blockquote {
   border: 1px solid #ddd;
   border-radius: 3px;
   margin: 1em 0;
+}
+blockquote > *:last-child {
+  margin-bottom: 0;
 }
 cite {
   display: block;
@@ -649,7 +651,6 @@ hr.addr {
 /* pagination */
 @media print {
   body {
-
     width: 100%;
   }
   p {
@@ -1210,11 +1211,11 @@ li > p:last-of-type:only-child {
 <thead><tr>
 <td class="left">Internet-Draft</td>
 <td class="center">BP EID-Pattern</td>
-<td class="right">January 2023</td>
+<td class="right">October 2023</td>
 </tr></thead>
 <tfoot><tr>
 <td class="left">Sipos</td>
-<td class="center">Expires 24 July 2023</td>
+<td class="center">Expires 4 April 2024</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1227,12 +1228,12 @@ li > p:last-of-type:only-child {
 <dd class="internet-draft">draft-sipos-dtn-eid-pattern-00</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2023-01-20" class="published">20 January 2023</time>
+<time datetime="2023-10-02" class="published">2 October 2023</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Informational</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2023-07-24">24 July 2023</time></dd>
+<dd class="expires"><time datetime="2024-04-04">4 April 2024</time></dd>
 <dt class="label-authors">Author:</dt>
 <dd class="authors">
 <div class="author">
@@ -1246,8 +1247,8 @@ li > p:last-of-type:only-child {
 <section id="section-abstract">
       <h2 id="abstract"><a href="#abstract" class="selfRef">Abstract</a></h2>
 <p id="section-abstract-1">
-This document extends the Endpoint ID (EID) concept into an EID Pattern, which is used to categorize any EID as matching a specific pattern or not.
-EID Patterns are suitable for expressing agent configuration, for being used on-the-wire by DTN protocols, and for being easily understandable by a layperson.
+This document extends the Bundle Protocol Endpoint ID (EID) concept into an EID Pattern, which is used to categorize any EID as matching a specific pattern or not.
+EID Patterns are suitable for expressing configuration, for being used on-the-wire by protocols, and for being easily understandable by a layperson.
 EID Patterns include scheme-specific optimizations for expressing set membership and each scheme pattern includes text and CBOR encoding forms; the pattern for the "ipn" EID scheme being designed to be highly compressible in its CBOR form.
 This document also defines a Public Key Infrastructure Using X.509 (PKIX) Other Name form to contain an EID Pattern and a handling rule to use a pattern to match an EID.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
 </section>
@@ -1270,7 +1271,7 @@ This document also defines a Public Key Infrastructure Using X.509 (PKIX) Other 
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 24 July 2023.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 4 April 2024.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1320,36 +1321,42 @@ This document also defines a Public Key Infrastructure Using X.509 (PKIX) Other 
             <p id="section-toc.1-1.2.1"><a href="#section-2" class="auto internal xref">2</a>.  <a href="#name-patterns-for-endpoint-ids" class="internal xref">Patterns for Endpoint IDs</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2.2.1">
-                <p id="section-toc.1-1.2.2.1.1"><a href="#section-2.1" class="auto internal xref">2.1</a>.  <a href="#name-dtn-scheme-pattern" class="internal xref">DTN Scheme Pattern</a></p>
+                <p id="section-toc.1-1.2.2.1.1"><a href="#section-2.1" class="auto internal xref">2.1</a>.  <a href="#name-pattern-set-and-pattern-ite" class="internal xref">Pattern Set and Pattern Items</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2.2.2">
+                <p id="section-toc.1-1.2.2.2.1"><a href="#section-2.2" class="auto internal xref">2.2</a>.  <a href="#name-any-scheme-pattern-item" class="internal xref">Any-Scheme Pattern Item</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2.2.3">
+                <p id="section-toc.1-1.2.2.3.1"><a href="#section-2.3" class="auto internal xref">2.3</a>.  <a href="#name-dtn-scheme-pattern-item" class="internal xref">DTN Scheme Pattern Item</a></p>
 <ul class="compact toc ulBare ulEmpty">
-<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2.2.1.2.1">
-                    <p id="section-toc.1-1.2.2.1.2.1.1"><a href="#section-2.1.1" class="auto internal xref">2.1.1</a>.  <a href="#name-eid-matching" class="internal xref">EID Matching</a></p>
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2.2.3.2.1">
+                    <p id="section-toc.1-1.2.2.3.2.1.1"><a href="#section-2.3.1" class="auto internal xref">2.3.1</a>.  <a href="#name-eid-matching" class="internal xref">EID Matching</a></p>
 </li>
-                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2.2.1.2.2">
-                    <p id="section-toc.1-1.2.2.1.2.2.1"><a href="#section-2.1.2" class="auto internal xref">2.1.2</a>.  <a href="#name-pattern-set-logic" class="internal xref">Pattern Set Logic</a></p>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2.2.3.2.2">
+                    <p id="section-toc.1-1.2.2.3.2.2.1"><a href="#section-2.3.2" class="auto internal xref">2.3.2</a>.  <a href="#name-pattern-set-logic" class="internal xref">Pattern Set Logic</a></p>
 </li>
-                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2.2.1.2.3">
-                    <p id="section-toc.1-1.2.2.1.2.3.1"><a href="#section-2.1.3" class="auto internal xref">2.1.3</a>.  <a href="#name-text-form" class="internal xref">Text Form</a></p>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2.2.3.2.3">
+                    <p id="section-toc.1-1.2.2.3.2.3.1"><a href="#section-2.3.3" class="auto internal xref">2.3.3</a>.  <a href="#name-text-form" class="internal xref">Text Form</a></p>
 </li>
-                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2.2.1.2.4">
-                    <p id="section-toc.1-1.2.2.1.2.4.1"><a href="#section-2.1.4" class="auto internal xref">2.1.4</a>.  <a href="#name-cbor-form" class="internal xref">CBOR Form</a></p>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2.2.3.2.4">
+                    <p id="section-toc.1-1.2.2.3.2.4.1"><a href="#section-2.3.4" class="auto internal xref">2.3.4</a>.  <a href="#name-cbor-form" class="internal xref">CBOR Form</a></p>
 </li>
                 </ul>
 </li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2.2.2">
-                <p id="section-toc.1-1.2.2.2.1"><a href="#section-2.2" class="auto internal xref">2.2</a>.  <a href="#name-ipn-scheme-pattern" class="internal xref">IPN Scheme Pattern</a></p>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2.2.4">
+                <p id="section-toc.1-1.2.2.4.1"><a href="#section-2.4" class="auto internal xref">2.4</a>.  <a href="#name-ipn-scheme-pattern-item" class="internal xref">IPN Scheme Pattern Item</a></p>
 <ul class="compact toc ulBare ulEmpty">
-<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2.2.2.2.1">
-                    <p id="section-toc.1-1.2.2.2.2.1.1"><a href="#section-2.2.1" class="auto internal xref">2.2.1</a>.  <a href="#name-eid-matching-2" class="internal xref">EID Matching</a></p>
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2.2.4.2.1">
+                    <p id="section-toc.1-1.2.2.4.2.1.1"><a href="#section-2.4.1" class="auto internal xref">2.4.1</a>.  <a href="#name-eid-matching-2" class="internal xref">EID Matching</a></p>
 </li>
-                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2.2.2.2.2">
-                    <p id="section-toc.1-1.2.2.2.2.2.1"><a href="#section-2.2.2" class="auto internal xref">2.2.2</a>.  <a href="#name-pattern-set-logic-2" class="internal xref">Pattern Set Logic</a></p>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2.2.4.2.2">
+                    <p id="section-toc.1-1.2.2.4.2.2.1"><a href="#section-2.4.2" class="auto internal xref">2.4.2</a>.  <a href="#name-pattern-set-logic-2" class="internal xref">Pattern Set Logic</a></p>
 </li>
-                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2.2.2.2.3">
-                    <p id="section-toc.1-1.2.2.2.2.3.1"><a href="#section-2.2.3" class="auto internal xref">2.2.3</a>.  <a href="#name-text-form-2" class="internal xref">Text Form</a></p>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2.2.4.2.3">
+                    <p id="section-toc.1-1.2.2.4.2.3.1"><a href="#section-2.4.3" class="auto internal xref">2.4.3</a>.  <a href="#name-text-form-2" class="internal xref">Text Form</a></p>
 </li>
-                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2.2.2.2.4">
-                    <p id="section-toc.1-1.2.2.2.2.4.1"><a href="#section-2.2.4" class="auto internal xref">2.2.4</a>.  <a href="#name-cbor-form-2" class="internal xref">CBOR Form</a></p>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2.2.4.2.4">
+                    <p id="section-toc.1-1.2.2.4.2.4.1"><a href="#section-2.4.4" class="auto internal xref">2.4.4</a>.  <a href="#name-cbor-form-2" class="internal xref">CBOR Form</a></p>
 </li>
                 </ul>
 </li>
@@ -1425,6 +1432,17 @@ This document also defines a Public Key Infrastructure Using X.509 (PKIX) Other 
 </li>
                 </ul>
 </li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.3">
+                <p id="section-toc.1-1.8.2.3.1"><a href="#appendix-B.3" class="auto internal xref">B.3</a>.  <a href="#name-combined-patterns" class="internal xref">Combined Patterns</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.3.2.1">
+                    <p id="section-toc.1-1.8.2.3.2.1.1"><a href="#appendix-B.3.1" class="auto internal xref">B.3.1</a>.  <a href="#name-any-scheme-match" class="internal xref">Any-Scheme Match</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.3.2.2">
+                    <p id="section-toc.1-1.8.2.3.2.2.1"><a href="#appendix-B.3.2" class="auto internal xref">B.3.2</a>.  <a href="#name-multiple-scheme-match" class="internal xref">Multiple Scheme Match</a></p>
+</li>
+                </ul>
+</li>
             </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9">
@@ -1443,8 +1461,8 @@ This document also defines a Public Key Infrastructure Using X.509 (PKIX) Other 
 <a href="#section-1" class="section-number selfRef">1. </a><a href="#name-introduction" class="section-name selfRef">Introduction</a>
       </h2>
 <p id="section-1-1">
-The Bundle Protocol (BP) Version 7 specification <span>[<a href="#RFC9171" class="cite xref">RFC9171</a>]</span> defines text and CBOR encoding forms of an Endpoint ID (EID) which is used as both a source and a destination for individual bundles.
-BP Agent implementations have necessarily used methods of defining patterns for matching multiple EIDs in order to configure routing, forwarding, and delivery of bundles, but these have not yet been standardized and do not have a concise form suitable for on-the-wire messaging.<a href="#section-1-1" class="pilcrow">¶</a></p>
+The Bundle Protocol (BP) Version 7 specification of <span>[<a href="#RFC9171" class="cite xref">RFC9171</a>]</span> defines Uniform Resource Identifier (URI) text and Concise Binary Object Representation (CBOR) encoding forms of an Endpoint ID (EID) which is used as both a source and a destination for individual bundles, the BP Security specification of <span>[<a href="#RFC9172" class="cite xref">RFC9172</a>]</span> uses EIDs as security sources, and the TCP Convergence Layer (TCPCL) of <span>[<a href="#RFC9174" class="cite xref">RFC9174</a>]</span> uses EIDs for peer identification.
+BP Agent implementations have necessarily used methods of defining patterns for matching multiple EIDs in order to configure routing, forwarding, and delivery of bundles, security policy, and convergence layer policy, but these have not yet been standardized and do not have a concise form suitable for on-the-wire messaging.<a href="#section-1-1" class="pilcrow">¶</a></p>
 <p id="section-1-2">
 In much the same way that the Classless Inter-domain Routing (CIDR) mechanism of <span>[<a href="#RFC4632" class="cite xref">RFC4632</a>]</span> can be used to aggregate a contiguous and bit-aligned block of IP addresses in a concise unit (encoded as text or otherwise), this concept of EID Pattern is used to aggregate a set of EIDs into a single concise unit.
 This is especially valuable because an EID includes both an identifier of the node sending or receiving the bundle as well as an identifier for the specific service which generated or will process the bundle.
@@ -1484,8 +1502,6 @@ The entire ABNF structure can be extracted from the XML version of this document
 The following initial fragment defines the top-level rules of this document's ABNF.<a href="#section-1.2-3" class="pilcrow">¶</a></p>
 <div class="lang-abnf sourcecode" id="section-1.2-4">
 <pre>
-eid-pattern = ipn-pattern / dtn-pattern
-
 ; Shared wildcard rules
 wildcard = "*"
 multi-wildcard = "**"
@@ -1511,8 +1527,6 @@ The following initial fragment defines the top-level symbols of this document's 
 <div class="lang-cddl sourcecode" id="section-1.3-4">
 <pre>
 start = eid-pattern
-
-eid-pattern = $eid-pattern .within eid-structure
 </pre><a href="#section-1.3-4" class="pilcrow">¶</a>
 </div>
 <p id="section-1.3-5">
@@ -1545,105 +1559,176 @@ See <a href="#sec-security" class="auto internal xref">Section 4</a> for details
 <p id="section-2-3">
 For the pattern forms defined in this document, the exact-match pattern's text form is identical with its matching EID.
 This behavior is not required or necessary but is a convenient side effect of the text definitions and makes the EID Pattern a proper superset of EID.
-The IPN pattern has an exact-match CBOR form which is identical to its matching EID, while the DTN pattern CBOR form is always as a component pattern array.<a href="#section-2-3" class="pilcrow">¶</a></p>
-<div id="sec-pattern-dtn">
+Because of its structure, used to simplify processing, the CBOR form for EID Pattern will never be identical to or a superset of EID.<a href="#section-2-3" class="pilcrow">¶</a></p>
+<div id="sec-pattern-top">
 <section id="section-2.1">
-        <h3 id="name-dtn-scheme-pattern">
-<a href="#section-2.1" class="section-number selfRef">2.1. </a><a href="#name-dtn-scheme-pattern" class="section-name selfRef">DTN Scheme Pattern</a>
+        <h3 id="name-pattern-set-and-pattern-ite">
+<a href="#section-2.1" class="section-number selfRef">2.1. </a><a href="#name-pattern-set-and-pattern-ite" class="section-name selfRef">Pattern Set and Pattern Items</a>
         </h3>
 <p id="section-2.1-1">
+The overall concept of this patterning structure is that one "EID Pattern" can be used to match any combination of EIDs.
+This is accomplished by a single pattern being composed of independent pattern items, each with scheme-specific rules and syntax.<a href="#section-2.1-1" class="pilcrow">¶</a></p>
+<p id="section-2.1-2">
+The conceptual model of the EID Pattern is as a non-empty sequence of scheme-specific pattern items.
+This sequence is ordered in order to make translating between forms deterministic, as each encoding form necessarily has a specific order of items.<a href="#section-2.1-2" class="pilcrow">¶</a></p>
+<p id="section-2.1-3">
+Although the encoding forms are necessarily ordered, the matching logic for an EID Pattern is independent of the order of its items.
+An EID pattern <span class="bcp14">SHALL</span> be considered to match an EID if any of its constituent items match the EID.<a href="#section-2.1-3" class="pilcrow">¶</a></p>
+<p id="section-2.1-4">
+Because matching against an "any-scheme" item (see <a href="#sec-pattern-anyscheme" class="auto internal xref">Section 2.2</a>) will necessarily make any scheme-specific patterns redundant, the text and CBOR forms of the EID pattern have a compressed form of any-scheme matching and disallow combining the any-scheme pattern with others.<a href="#section-2.1-4" class="pilcrow">¶</a></p>
+<p id="section-2.1-5">
+The text form of the EID pattern is the following, which uses the URI reserved character "|" to delimit items in the sequence.
+Because the delimiter is used between items, an EID pattern with one item has an identical text form to that item.<a href="#section-2.1-5" class="pilcrow">¶</a></p>
+<div class="lang-abnf sourcecode" id="section-2.1-6">
+<pre>
+eid-pattern = any-scheme-item / eid-pattern-set
+eid-pattern-set = eid-pattern-item *( "|" eid-pattern-item )
+; Limited to these schemes for now
+eid-pattern-item = ipn-pat-item / dtn-pat-item
+</pre><a href="#section-2.1-6" class="pilcrow">¶</a>
+</div>
+<p id="section-2.1-7">
+The CBOR form of the EID pattern is the following, which uses an enveloping array to contain the items.
+Although the any-scheme pattern includes a compressed encoding, avoiding the outer array, it still follows the conceptual model of a set of items (in which there is allowed only one item).
+Because there is otherwise always an outer array, there is no concept of a "bare" scheme-specific pattern item in the CBOR form.<a href="#section-2.1-7" class="pilcrow">¶</a></p>
+<div class="lang-cddl sourcecode" id="section-2.1-8">
+<pre>
+eid-pattern = any-scheme-item / eid-pattern-set
+eid-pattern-set = [1* eid-pattern-item]
+eid-pattern-item = $eid-pat-item .within eid-structure
+</pre><a href="#section-2.1-8" class="pilcrow">¶</a>
+</div>
+</section>
+</div>
+<div id="sec-pattern-anyscheme">
+<section id="section-2.2">
+        <h3 id="name-any-scheme-pattern-item">
+<a href="#section-2.2" class="section-number selfRef">2.2. </a><a href="#name-any-scheme-pattern-item" class="section-name selfRef">Any-Scheme Pattern Item</a>
+        </h3>
+<p id="section-2.2-1">
+The simplest pattern item is one which will match any EID of any URI scheme.
+Because this necessarily disallows scheme-specific logic, the any-scheme pattern has only its identity with no parameters or conceptual structure.<a href="#section-2.2-1" class="pilcrow">¶</a></p>
+<p id="section-2.2-2">
+When the any-scheme item is present in an EID pattern, it <span class="bcp14">SHALL</span> be the only item in the pattern.
+Any other, scheme-specific items would be redundant and unnecessary when combined with the any-scheme item.<a href="#section-2.2-2" class="pilcrow">¶</a></p>
+<p id="section-2.2-3">
+The text form of the any-scheme pattern is the following exact text.
+As defined in <a href="#sec-pattern-top" class="auto internal xref">Section 2.1</a>, when this text form is present it cannot be combined with other items.<a href="#section-2.2-3" class="pilcrow">¶</a></p>
+<div class="lang-abnf sourcecode" id="section-2.2-4">
+<pre>
+any-scheme-item = "***"
+</pre><a href="#section-2.2-4" class="pilcrow">¶</a>
+</div>
+<p id="section-2.2-5">
+The CBOR form of the any-scheme pattern is the following exact value.
+As defined in <a href="#sec-pattern-top" class="auto internal xref">Section 2.1</a>, when this CBOR form is present it occurs outside of an enveloping array and thus cannot be combined with other items.<a href="#section-2.2-5" class="pilcrow">¶</a></p>
+<div class="lang-cddl sourcecode" id="section-2.2-6">
+<pre>
+any-scheme-item = true
+</pre><a href="#section-2.2-6" class="pilcrow">¶</a>
+</div>
+</section>
+</div>
+<div id="sec-pattern-dtn">
+<section id="section-2.3">
+        <h3 id="name-dtn-scheme-pattern-item">
+<a href="#section-2.3" class="section-number selfRef">2.3. </a><a href="#name-dtn-scheme-pattern-item" class="section-name selfRef">DTN Scheme Pattern Item</a>
+        </h3>
+<p id="section-2.3-1">
 As defined in <span><a href="https://rfc-editor.org/rfc/rfc9171#section-4.2.5.1.1" class="relref">Section 4.2.5.1.1</a> of [<a href="#RFC9171" class="cite xref">RFC9171</a>]</span>, DTN scheme EIDs have an authority (node name) part and a sequence of path (service demux) segment components.
 Combining these components together, the whole EID SSP is treated as a sequence of these unstructured text components.
-Because of the lack of more specific structure, outside of match-all wildcards only a generic pattern matching mechanism like a regular expression can be used.<a href="#section-2.1-1" class="pilcrow">¶</a></p>
-<p id="section-2.1-2">
-The conceptual model of the DTN pattern is that the node name and the sequence of path segments can be matched as one of:<a href="#section-2.1-2" class="pilcrow">¶</a></p>
-<span class="break"></span><dl class="dlParallel" id="section-2.1-3">
-          <dt id="section-2.1-3.1">Specific value:</dt>
-          <dd style="margin-left: 1.5em" id="section-2.1-3.2">This will match only a single value (as decoded text).<a href="#section-2.1-3.2" class="pilcrow">¶</a>
+Because of the lack of more specific structure, outside of match-all wildcards only a generic pattern matching mechanism like a regular expression can be used.<a href="#section-2.3-1" class="pilcrow">¶</a></p>
+<p id="section-2.3-2">
+For the remainder of this document, the term "DTN pattern" is used as shorthand to mean the EID pattern item used for the "dtn" scheme.<a href="#section-2.3-2" class="pilcrow">¶</a></p>
+<p id="section-2.3-3">
+The conceptual model of the DTN pattern is that the node name and the sequence of path segments can be matched as one of:<a href="#section-2.3-3" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-2.3-4">
+          <dt id="section-2.3-4.1">Specific value:</dt>
+          <dd style="margin-left: 1.5em" id="section-2.3-4.2">This will match only a single value (as decoded text).<a href="#section-2.3-4.2" class="pilcrow">¶</a>
 </dd>
           <dd class="break"></dd>
-<dt id="section-2.1-3.3">Regular expression:</dt>
-          <dd style="margin-left: 1.5em" id="section-2.1-3.4">This will match a decoded text value based on a (possibly anchored) regular expression.<a href="#section-2.1-3.4" class="pilcrow">¶</a>
+<dt id="section-2.3-4.3">Regular expression:</dt>
+          <dd style="margin-left: 1.5em" id="section-2.3-4.4">This will match a decoded text value based on a (possibly anchored) regular expression.<a href="#section-2.3-4.4" class="pilcrow">¶</a>
 </dd>
           <dd class="break"></dd>
-<dt id="section-2.1-3.5">Single-segment wildcard:</dt>
-          <dd style="margin-left: 1.5em" id="section-2.1-3.6">This will match an individual path segment.<a href="#section-2.1-3.6" class="pilcrow">¶</a>
+<dt id="section-2.3-4.5">Single-segment wildcard:</dt>
+          <dd style="margin-left: 1.5em" id="section-2.3-4.6">This will match an individual path segment.<a href="#section-2.3-4.6" class="pilcrow">¶</a>
 </dd>
           <dd class="break"></dd>
-<dt id="section-2.1-3.7">Multi-segment wildcard:</dt>
-          <dd style="margin-left: 1.5em" id="section-2.1-3.8">For the node name this will match any valid value. For the path segment this will match any number of segments of any value.<a href="#section-2.1-3.8" class="pilcrow">¶</a>
+<dt id="section-2.3-4.7">Multi-segment wildcard:</dt>
+          <dd style="margin-left: 1.5em" id="section-2.3-4.8">For the node name this will match any valid value. For the path segment this will match any number of segments of any value.<a href="#section-2.3-4.8" class="pilcrow">¶</a>
 </dd>
         <dd class="break"></dd>
 </dl>
-<p id="section-2.1-4">
+<p id="section-2.3-5">
 A DTN pattern <span class="bcp14">SHALL</span> contain at least two components: the first for the node name and the others for the service demux.
 A DTN pattern <span class="bcp14">SHALL</span> contain no more than one multi-segment wildcard component.
-If present, a DTN pattern <span class="bcp14">SHALL</span> only contain a multi-segment wildcard in its last (demux path segment) component.<a href="#section-2.1-4" class="pilcrow">¶</a></p>
-<aside id="section-2.1-5">
-          <p id="section-2.1-5.1">
+If present, a DTN pattern <span class="bcp14">SHALL</span> only contain a multi-segment wildcard in its last (demux path segment) component.<a href="#section-2.3-5" class="pilcrow">¶</a></p>
+<aside id="section-2.3-6">
+          <p id="section-2.3-6.1">
 The reason for using a multi-segment wildcard in the node name part is to allow for a future enhancement of this pattern method to handle components within the node name (similar to the sequence of labels within a DNS name).
-For now the multi-segment wildcard within a node name behaves equivalently to a single-segment wildcard because the node name is not decomposed into internal components.<a href="#section-2.1-5.1" class="pilcrow">¶</a></p>
+For now the multi-segment wildcard within a node name behaves equivalently to a single-segment wildcard because the node name is not decomposed into internal components.<a href="#section-2.3-6.1" class="pilcrow">¶</a></p>
 </aside>
-<section id="section-2.1.1">
+<section id="section-2.3.1">
           <h4 id="name-eid-matching">
-<a href="#section-2.1.1" class="section-number selfRef">2.1.1. </a><a href="#name-eid-matching" class="section-name selfRef">EID Matching</a>
+<a href="#section-2.3.1" class="section-number selfRef">2.3.1. </a><a href="#name-eid-matching" class="section-name selfRef">EID Matching</a>
           </h4>
-<p id="section-2.1.1-1">
+<p id="section-2.3.1-1">
 When matching a DTN pattern any query or fragment parts of an EID <span class="bcp14">SHALL</span> be ignored and not treated as comparison components.
 A DTN pattern <span class="bcp14">SHALL</span> be considered to match a specific EID when both have the same scheme, the pattern has the same number of components as the EID, and each component of the the pattern matches the corresponding component of the EID SSP.
 If the number of components differ or if any component doesn't match, the whole pattern does not match.
-Each pattern component <span class="bcp14">SHALL</span> be considered to match according to the following rules:<a href="#section-2.1.1-1" class="pilcrow">¶</a></p>
-<span class="break"></span><dl class="dlParallel" id="section-2.1.1-2">
-            <dt id="section-2.1.1-2.1">Specific value:</dt>
-            <dd style="margin-left: 1.5em" id="section-2.1.1-2.2">
-The pattern component <span class="bcp14">SHALL</span> be compared with the EID component after both are percent-decoded in accordance with <span><a href="https://rfc-editor.org/rfc/rfc3986#section-2.1" class="relref">Section 2.1</a> of [<a href="#RFC3986" class="cite xref">RFC3986</a>]</span> and UTF-8 decoded in accordance with <span>[<a href="#RFC3629" class="cite xref">RFC3629</a>]</span>.<a href="#section-2.1.1-2.2" class="pilcrow">¶</a>
+Each pattern component <span class="bcp14">SHALL</span> be considered to match according to the following rules:<a href="#section-2.3.1-1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-2.3.1-2">
+            <dt id="section-2.3.1-2.1">Specific value:</dt>
+            <dd style="margin-left: 1.5em" id="section-2.3.1-2.2">
+The pattern component <span class="bcp14">SHALL</span> be compared with the EID component after both are percent-decoded in accordance with <span><a href="https://rfc-editor.org/rfc/rfc3986#section-2.1" class="relref">Section 2.1</a> of [<a href="#RFC3986" class="cite xref">RFC3986</a>]</span> and UTF-8 decoded in accordance with <span>[<a href="#RFC3629" class="cite xref">RFC3629</a>]</span>.<a href="#section-2.3.1-2.2" class="pilcrow">¶</a>
 </dd>
             <dd class="break"></dd>
-<dt id="section-2.1.1-2.3">Regular expression:</dt>
-            <dd style="margin-left: 1.5em" id="section-2.1.1-2.4">
+<dt id="section-2.3.1-2.3">Regular expression:</dt>
+            <dd style="margin-left: 1.5em" id="section-2.3.1-2.4">
               The pattern component <span class="bcp14">SHALL</span> be percent-decoded and UTF-8 decoded then interpreted as a regular expressing in accordance with <span>[<a href="#ECMA262" class="cite xref">ECMA262</a>]</span>.
               The EID component <span class="bcp14">SHALL</span> be percent-decoded and UTF-8 decoded.
-              The regular expression <span class="bcp14">SHALL</span> then be compared with the decoded EID component.<a href="#section-2.1.1-2.4" class="pilcrow">¶</a>
+              The regular expression <span class="bcp14">SHALL</span> then be compared with the decoded EID component.<a href="#section-2.3.1-2.4" class="pilcrow">¶</a>
 </dd>
             <dd class="break"></dd>
-<dt id="section-2.1.1-2.5">Single-segment wildcard:</dt>
-            <dd style="margin-left: 1.5em" id="section-2.1.1-2.6">The pattern component <span class="bcp14">SHALL</span> be considered to match with any EID component, if present, including an empty component.<a href="#section-2.1.1-2.6" class="pilcrow">¶</a>
+<dt id="section-2.3.1-2.5">Single-segment wildcard:</dt>
+            <dd style="margin-left: 1.5em" id="section-2.3.1-2.6">The pattern component <span class="bcp14">SHALL</span> be considered to match with any EID component, if present, including an empty component.<a href="#section-2.3.1-2.6" class="pilcrow">¶</a>
 </dd>
             <dd class="break"></dd>
-<dt id="section-2.1.1-2.7">Multi-segment wildcard:</dt>
-            <dd style="margin-left: 1.5em" id="section-2.1.1-2.8">The pattern component <span class="bcp14">SHALL</span> be considered to match with any number of EID components, including zero EID components.<a href="#section-2.1.1-2.8" class="pilcrow">¶</a>
+<dt id="section-2.3.1-2.7">Multi-segment wildcard:</dt>
+            <dd style="margin-left: 1.5em" id="section-2.3.1-2.8">The pattern component <span class="bcp14">SHALL</span> be considered to match with any number of EID components, including zero EID components.<a href="#section-2.3.1-2.8" class="pilcrow">¶</a>
 </dd>
           <dd class="break"></dd>
 </dl>
-<p id="section-2.1.1-3">
-Because these are dealing with text values in an information model, the matching occurs in the percent-encoding normalized or percent-decoded domain (<em>i.e.</em> it's not a pattern for the encoded URI, the matching is performed within the information model of the SSP).<a href="#section-2.1.1-3" class="pilcrow">¶</a></p>
+<p id="section-2.3.1-3">
+Because these are dealing with text values in an information model, the matching occurs in the percent-encoding normalized or percent-decoded domain (<em>i.e.</em> it's not a pattern for the encoded URI, the matching is performed within the information model of the SSP).<a href="#section-2.3.1-3" class="pilcrow">¶</a></p>
 </section>
-<section id="section-2.1.2">
+<section id="section-2.3.2">
           <h4 id="name-pattern-set-logic">
-<a href="#section-2.1.2" class="section-number selfRef">2.1.2. </a><a href="#name-pattern-set-logic" class="section-name selfRef">Pattern Set Logic</a>
+<a href="#section-2.3.2" class="section-number selfRef">2.3.2. </a><a href="#name-pattern-set-logic" class="section-name selfRef">Pattern Set Logic</a>
           </h4>
-<p id="section-2.1.2-1">
-Because of the arbitrarily complex nesting rules allowed by regular expressions, and the multiple techniques available for different expressions to match the same subsets of text, DTN pattern sets can only be consistently computed when the node-name or demux path segments are either exact-text matches or one of the match-all wildcards.<a href="#section-2.1.2-1" class="pilcrow">¶</a></p>
-<p id="section-2.1.2-2">
+<p id="section-2.3.2-1">
+Because of the arbitrarily complex nesting rules allowed by regular expressions, and the multiple techniques available for different expressions to match the same subsets of text, DTN pattern sets can only be consistently computed when the node-name or demux path segments are either exact-text matches or one of the match-all wildcards.<a href="#section-2.3.2-1" class="pilcrow">¶</a></p>
+<p id="section-2.3.2-2">
 Users of the DTN pattern <span class="bcp14">SHALL</span> have a mechanism to perform set logic with specific value and wildcard components.
-EID Pattern processors <span class="bcp14">MAY</span>, but cannot be assumed to, have a mechanism to perform set logic on regular expression components.<a href="#section-2.1.2-2" class="pilcrow">¶</a></p>
+EID Pattern processors <span class="bcp14">MAY</span>, but cannot be assumed to, have a mechanism to perform set logic on regular expression components.<a href="#section-2.3.2-2" class="pilcrow">¶</a></p>
 </section>
-<section id="section-2.1.3">
+<section id="section-2.3.3">
           <h4 id="name-text-form">
-<a href="#section-2.1.3" class="section-number selfRef">2.1.3. </a><a href="#name-text-form" class="section-name selfRef">Text Form</a>
+<a href="#section-2.3.3" class="section-number selfRef">2.3.3. </a><a href="#name-text-form" class="section-name selfRef">Text Form</a>
           </h4>
-<p id="section-2.1.3-1">
+<p id="section-2.3.3-1">
 The text form of the DTN pattern conforms to the ABNF in <a href="#fig-pattern-dtn-text" class="auto internal xref">Figure 1</a>.
-The authority begins with the same string "//" and authority and demux components are separated by the same character "/" as in the DTN URI scheme.<a href="#section-2.1.3-1" class="pilcrow">¶</a></p>
-<p id="section-2.1.3-2">
+The authority begins with the same string "//" and authority and demux components are separated by the same character "/" as in the DTN URI scheme.<a href="#section-2.3.3-1" class="pilcrow">¶</a></p>
+<p id="section-2.3.3-2">
 This pattern uses reserved URI characters of "[" and "]" (see <span><a href="https://rfc-editor.org/rfc/rfc3986#section-2.2" class="relref">Section 2.2</a> of [<a href="#RFC3986" class="cite xref">RFC3986</a>]</span>) to indicate the presence of a regular expression for a component.
 This allows completely disambiguating a DTN pattern from a specific DTN EID when a regular expression or wildcard is present.
-Because neither of those are required to be present in a DTN pattern and the asterisk "*" is a valid path segment character, the considerations of <a href="#sec-security" class="auto internal xref">Section 4</a> still always apply to decoding text as EID Pattern versus an EID.<a href="#section-2.1.3-2" class="pilcrow">¶</a></p>
+Because neither of those are required to be present in a DTN pattern and the asterisk "*" is a valid path segment character, the considerations of <a href="#sec-security" class="auto internal xref">Section 4</a> still always apply to decoding text as EID Pattern versus an EID.<a href="#section-2.3.3-2" class="pilcrow">¶</a></p>
 <span id="name-dtn-pattern-abnf-schema"></span><div id="fig-pattern-dtn-text">
 <figure id="figure-1">
-            <div class="lang-abnf sourcecode" id="section-2.1.3-3.1">
+            <div class="lang-abnf sourcecode" id="section-2.3.3-3.1">
 <pre>
-dtn-pattern = "dtn:" dtn-ssp
+dtn-pat-item = "dtn:" dtn-ssp
 dtn-ssp = dtn-wkssp-exact / dtn-fullssp
 
 ; A node-name authority with some number of demux path segments
@@ -1668,59 +1753,59 @@ dtn-wkssp-exact = "none"
 <a href="#name-dtn-pattern-abnf-schema" class="selfRef">DTN Pattern ABNF Schema</a>
             </figcaption></figure>
 </div>
-<p id="section-2.1.3-4">
-A concrete use of this text form is illustrated in this example:<a href="#section-2.1.3-4" class="pilcrow">¶</a></p>
-<div class="sourcecode" id="section-2.1.3-5">
+<p id="section-2.3.3-4">
+A concrete use of this text form is illustrated in this example:<a href="#section-2.3.3-4" class="pilcrow">¶</a></p>
+<div class="sourcecode" id="section-2.3.3-5">
 <pre>
-dtn://node/[%5Eanchored]/other%20part/**
+dtn://node-name/[%5Eanchored]/other%20part/**
       &lt;-- P --&gt;  &lt;--- P ---&gt;  &lt;--- P ----&gt;
-</pre><a href="#section-2.1.3-5" class="pilcrow">¶</a>
+</pre><a href="#section-2.3.3-5" class="pilcrow">¶</a>
 </div>
-<p id="section-2.1.3-6">
+<p id="section-2.3.3-6">
 Where the "P" sections are percent-encoded (with no reserved characters) and square brackets unambiguously delimit the expression component.
 The actual components in this example are the specific value "node", the regular expression "^anchored", and the specific value "other part" and all are UTF-8 and percent-encoded.
-Further examples are given in <a href="#sec-ex-pattern-dtn" class="auto internal xref">Appendix B.1</a>.<a href="#section-2.1.3-6" class="pilcrow">¶</a></p>
-<aside id="section-2.1.3-7">
-            <p id="section-2.1.3-7.1">
-Because all of "." "*" "+" and "$" are within the <code>pchar</code> rule, and "^" is added by the <code>regexp</code> rule, it is possible for a less strict encoder (<em>e.g.</em> a human writing patterns) to create one similar to <code>dtn://node/[^some.*thing$]</code> and have it still be handled correctly.<a href="#section-2.1.3-7.1" class="pilcrow">¶</a></p>
+Further examples are given in <a href="#sec-ex-pattern-dtn" class="auto internal xref">Appendix B.1</a>.<a href="#section-2.3.3-6" class="pilcrow">¶</a></p>
+<aside id="section-2.3.3-7">
+            <p id="section-2.3.3-7.1">
+Because all of "." "*" "+" and "$" are within the <code>pchar</code> rule, and "^" is added by the <code>regexp</code> rule, it is possible for a less strict encoder (<em>e.g.</em> a human writing patterns) to create one similar to <code>dtn://node/[^some.*thing$]</code> and have it still be handled correctly.<a href="#section-2.3.3-7.1" class="pilcrow">¶</a></p>
 </aside>
 </section>
-<section id="section-2.1.4">
+<section id="section-2.3.4">
           <h4 id="name-cbor-form">
-<a href="#section-2.1.4" class="section-number selfRef">2.1.4. </a><a href="#name-cbor-form" class="section-name selfRef">CBOR Form</a>
+<a href="#section-2.3.4" class="section-number selfRef">2.3.4. </a><a href="#name-cbor-form" class="section-name selfRef">CBOR Form</a>
           </h4>
-<p id="section-2.1.4-1">
+<p id="section-2.3.4-1">
 The CBOR form of the DTN pattern conforms to the CDDL in <a href="#fig-pattern-dtn-cbor" class="auto internal xref">Figure 2</a>.
 Just as in the DTN URI scheme the pattern scheme identifier is 1, the first component of the SSP identifies the node and the last components identify the service path segments.
-The well-known SSP <span class="bcp14">SHALL</span> be encoded using the same <code>uint</code> value specified for the DTN URI scheme.<a href="#section-2.1.4-1" class="pilcrow">¶</a></p>
-<p id="section-2.1.4-2">
-Each of the DTN pattern components <span class="bcp14">SHALL</span> be CBOR encoded as follows:<a href="#section-2.1.4-2" class="pilcrow">¶</a></p>
-<span class="break"></span><dl class="dlParallel" id="section-2.1.4-3">
-            <dt id="section-2.1.4-3.1">Specific value:</dt>
-            <dd style="margin-left: 1.5em" id="section-2.1.4-3.2">A text item (not otherwise UTF-8 or percent-encoded) corresponding to the <code>dtn-exact</code> symbol.<a href="#section-2.1.4-3.2" class="pilcrow">¶</a>
+The well-known SSP <span class="bcp14">SHALL</span> be encoded using the same <code>uint</code> value specified for the DTN URI scheme.<a href="#section-2.3.4-1" class="pilcrow">¶</a></p>
+<p id="section-2.3.4-2">
+Each of the DTN pattern components <span class="bcp14">SHALL</span> be CBOR encoded as follows:<a href="#section-2.3.4-2" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-2.3.4-3">
+            <dt id="section-2.3.4-3.1">Specific value:</dt>
+            <dd style="margin-left: 1.5em" id="section-2.3.4-3.2">A text item (not otherwise UTF-8 or percent-encoded) corresponding to the <code>dtn-exact</code> symbol.<a href="#section-2.3.4-3.2" class="pilcrow">¶</a>
 </dd>
             <dd class="break"></dd>
-<dt id="section-2.1.4-3.3">Regular expression:</dt>
-            <dd style="margin-left: 1.5em" id="section-2.1.4-3.4">A tagged regular expression item corresponding to the <code>regexp</code> symbol.<a href="#section-2.1.4-3.4" class="pilcrow">¶</a>
+<dt id="section-2.3.4-3.3">Regular expression:</dt>
+            <dd style="margin-left: 1.5em" id="section-2.3.4-3.4">A tagged regular expression item corresponding to the <code>regexp</code> symbol.<a href="#section-2.3.4-3.4" class="pilcrow">¶</a>
 </dd>
             <dd class="break"></dd>
-<dt id="section-2.1.4-3.5">Single-segment wildcard:</dt>
-            <dd style="margin-left: 1.5em" id="section-2.1.4-3.6">The <code>true</code> item.<a href="#section-2.1.4-3.6" class="pilcrow">¶</a>
+<dt id="section-2.3.4-3.5">Single-segment wildcard:</dt>
+            <dd style="margin-left: 1.5em" id="section-2.3.4-3.6">The <code>true</code> item.<a href="#section-2.3.4-3.6" class="pilcrow">¶</a>
 </dd>
             <dd class="break"></dd>
-<dt id="section-2.1.4-3.7">Multi-segment wildcard:</dt>
-            <dd style="margin-left: 1.5em" id="section-2.1.4-3.8">The <code>false</code> item.<a href="#section-2.1.4-3.8" class="pilcrow">¶</a>
+<dt id="section-2.3.4-3.7">Multi-segment wildcard:</dt>
+            <dd style="margin-left: 1.5em" id="section-2.3.4-3.8">The <code>false</code> item.<a href="#section-2.3.4-3.8" class="pilcrow">¶</a>
 </dd>
           <dd class="break"></dd>
 </dl>
-<p id="section-2.1.4-4">
+<p id="section-2.3.4-4">
 The wildcard sentinel values have no intrinsic meaning and were simply chosen to be one-octet-encoded special items.
-The CBOR form of the DTN pattern is not as compressible as the IPN pattern, but the exact text is not percent encoded and the regular expression tag "regexp" does save one octet per instance.<a href="#section-2.1.4-4" class="pilcrow">¶</a></p>
+The CBOR form of the DTN pattern is not as compressible as the IPN pattern, but the exact text is not percent encoded and the regular expression tag "regexp" does save one octet per instance.<a href="#section-2.3.4-4" class="pilcrow">¶</a></p>
 <span id="name-dtn-pattern-cddl-schema"></span><div id="fig-pattern-dtn-cbor">
 <figure id="figure-2">
-            <div class="lang-cddl sourcecode" id="section-2.1.4-5.1">
+            <div class="lang-cddl sourcecode" id="section-2.3.4-5.1">
 <pre>
-$eid-pattern /= [
+$eid-pat-item /= [
   uri-code: 1,
   SSP: dtn-ssp
 ]
@@ -1754,101 +1839,103 @@ $dtn-wkssp /= 0  ; For "none"
 </section>
 </div>
 <div id="sec-pattern-ipn">
-<section id="section-2.2">
-        <h3 id="name-ipn-scheme-pattern">
-<a href="#section-2.2" class="section-number selfRef">2.2. </a><a href="#name-ipn-scheme-pattern" class="section-name selfRef">IPN Scheme Pattern</a>
+<section id="section-2.4">
+        <h3 id="name-ipn-scheme-pattern-item">
+<a href="#section-2.4" class="section-number selfRef">2.4. </a><a href="#name-ipn-scheme-pattern-item" class="section-name selfRef">IPN Scheme Pattern Item</a>
         </h3>
-<p id="section-2.2-1">
+<p id="section-2.4-1">
 As defined in <span><a href="https://rfc-editor.org/rfc/rfc9171#section-4.2.5.1.2" class="relref">Section 4.2.5.1.2</a> of [<a href="#RFC9171" class="cite xref">RFC9171</a>]</span> and updated in <span>[<a href="#I-D.ietf-dtn-ipn-update" class="cite xref">I-D.ietf-dtn-ipn-update</a>]</span>, IPN scheme EIDs have a SSP which is divided into a bounded number of integer numeric components.
-Because of this, the pattern for IPN scheme EIDs is based on matching a numeric value or range for each component.<a href="#section-2.2-1" class="pilcrow">¶</a></p>
-<p id="section-2.2-2">
-The conceptual model of the IPN pattern is that each of the components of the SSP can be matched as one of:<a href="#section-2.2-2" class="pilcrow">¶</a></p>
-<span class="break"></span><dl class="dlParallel" id="section-2.2-3">
-          <dt id="section-2.2-3.1">Specific value:</dt>
-          <dd style="margin-left: 1.5em" id="section-2.2-3.2">This will match only a single value (as decoded number).<a href="#section-2.2-3.2" class="pilcrow">¶</a>
+Because of this, the pattern for IPN scheme EIDs is based on matching a numeric value or range for each component.<a href="#section-2.4-1" class="pilcrow">¶</a></p>
+<p id="section-2.4-2">
+For the remainder of this document, the term "IPN pattern" is used as shorthand to mean the EID pattern item used for the "ipn" scheme.<a href="#section-2.4-2" class="pilcrow">¶</a></p>
+<p id="section-2.4-3">
+The conceptual model of the IPN pattern is that each of the components of the SSP can be matched as one of:<a href="#section-2.4-3" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-2.4-4">
+          <dt id="section-2.4-4.1">Specific value:</dt>
+          <dd style="margin-left: 1.5em" id="section-2.4-4.2">This will match only a single value (as decoded number).<a href="#section-2.4-4.2" class="pilcrow">¶</a>
 </dd>
           <dd class="break"></dd>
-<dt id="section-2.2-3.3">Range:</dt>
-          <dd style="margin-left: 1.5em" id="section-2.2-3.4">This will match any value contained in a disjoint set of numeric intervals.<a href="#section-2.2-3.4" class="pilcrow">¶</a>
+<dt id="section-2.4-4.3">Range:</dt>
+          <dd style="margin-left: 1.5em" id="section-2.4-4.4">This will match any value contained in a disjoint set of numeric intervals.<a href="#section-2.4-4.4" class="pilcrow">¶</a>
 </dd>
           <dd class="break"></dd>
-<dt id="section-2.2-3.5">Wildcard:</dt>
-          <dd style="margin-left: 1.5em" id="section-2.2-3.6">This will match any valid value, but not the absence of a value.<a href="#section-2.2-3.6" class="pilcrow">¶</a>
+<dt id="section-2.4-4.5">Wildcard:</dt>
+          <dd style="margin-left: 1.5em" id="section-2.4-4.6">This will match any valid value, but not the absence of a value.<a href="#section-2.4-4.6" class="pilcrow">¶</a>
 </dd>
         <dd class="break"></dd>
 </dl>
-<p id="section-2.2-4">
-An IPN pattern <span class="bcp14">SHALL</span> contain between two and four components, inclusive, corresponding to the IPN scheme EID components.<a href="#section-2.2-4" class="pilcrow">¶</a></p>
-<p id="section-2.2-5">
+<p id="section-2.4-5">
+An IPN pattern <span class="bcp14">SHALL</span> contain between two and four components, inclusive, corresponding to the IPN scheme EID components.<a href="#section-2.4-5" class="pilcrow">¶</a></p>
+<p id="section-2.4-6">
 Within a single component of the IPN pattern, the range intervals <span class="bcp14">SHALL</span> be disjoint and non-contiguous.
 Any overlapping or contiguity of intervals within a set can be coalesced into a single covering interval with the same meaning.
 The text form of a range can, but <span class="bcp14">SHOULD NOT</span>, contain overlapping or contiguous intervals.
 The CBOR form of a range does not allow overlapping intervals because of its compressed form, but does allow contiguous intervals.
 The decoder for any form of an IPN pattern <span class="bcp14">SHALL</span> normalize all intervals sets to satisfy information model requirements.
-The decoder for any form of an IPN pattern <span class="bcp14">SHOULD</span> treat the failure of any piece parts of a pattern as a failure to decode the whole pattern.<a href="#section-2.2-5" class="pilcrow">¶</a></p>
-<p id="section-2.2-6">
+The decoder for any form of an IPN pattern <span class="bcp14">SHOULD</span> treat the failure of any piece parts of a pattern as a failure to decode the whole pattern.<a href="#section-2.4-6" class="pilcrow">¶</a></p>
+<p id="section-2.4-7">
 A limitation of this mechanism is that there is no intermediate component pattern between a specific set of finite intervals and the match-all (unbounded) wildcard.
-There is no capability of including an non-finite bounds within any interval.<a href="#section-2.2-6" class="pilcrow">¶</a></p>
-<aside id="section-2.2-7">
-          <p id="section-2.2-7.1">
+There is no capability of including an non-finite bounds within any interval.<a href="#section-2.4-7" class="pilcrow">¶</a></p>
+<aside id="section-2.4-8">
+          <p id="section-2.4-8.1">
 EDITORIAL NOTE:
 The current definition does not include the capability to have a multi-component wildcard like the DTN pattern has "**".
 If present, this would allow patterns such as "ipn:**.4" to match any nodes with a specific service number.
-If allowed at the end-of-pattern something like "ipn:1.**" would be ambiguous about whether that single component applied to the authority number (like <code>ipn:1.3.4</code>) or the node number (like <code>ipn:1.4</code>).<a href="#section-2.2-7.1" class="pilcrow">¶</a></p>
+If allowed at the end-of-pattern something like "ipn:1.**" would be ambiguous about whether that single component applied to the authority number (like <code>ipn:1.3.4</code>) or the node number (like <code>ipn:1.4</code>).<a href="#section-2.4-8.1" class="pilcrow">¶</a></p>
 </aside>
-<section id="section-2.2.1">
+<section id="section-2.4.1">
           <h4 id="name-eid-matching-2">
-<a href="#section-2.2.1" class="section-number selfRef">2.2.1. </a><a href="#name-eid-matching-2" class="section-name selfRef">EID Matching</a>
+<a href="#section-2.4.1" class="section-number selfRef">2.4.1. </a><a href="#name-eid-matching-2" class="section-name selfRef">EID Matching</a>
           </h4>
-<p id="section-2.2.1-1">
+<p id="section-2.4.1-1">
 An IPN pattern <span class="bcp14">SHALL</span> be considered to match a specific EID when both have the same scheme, the pattern has the same number of components as the EID, and each component of the the pattern matches the corresponding component of the EID SSP.
 If the number of components differ or if any component doesn't match, the whole pattern does not match.
-Each pattern component <span class="bcp14">SHALL</span> be considered to match according to the following rules:<a href="#section-2.2.1-1" class="pilcrow">¶</a></p>
-<span class="break"></span><dl class="dlParallel" id="section-2.2.1-2">
-            <dt id="section-2.2.1-2.1">Specific value:</dt>
-            <dd style="margin-left: 1.5em" id="section-2.2.1-2.2">The pattern component <span class="bcp14">SHALL</span> be compared to the EID component as an exact match of decoded numeric value.<a href="#section-2.2.1-2.2" class="pilcrow">¶</a>
+Each pattern component <span class="bcp14">SHALL</span> be considered to match according to the following rules:<a href="#section-2.4.1-1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-2.4.1-2">
+            <dt id="section-2.4.1-2.1">Specific value:</dt>
+            <dd style="margin-left: 1.5em" id="section-2.4.1-2.2">The pattern component <span class="bcp14">SHALL</span> be compared to the EID component as an exact match of decoded numeric value.<a href="#section-2.4.1-2.2" class="pilcrow">¶</a>
 </dd>
             <dd class="break"></dd>
-<dt id="section-2.2.1-2.3">Range:</dt>
-            <dd style="margin-left: 1.5em" id="section-2.2.1-2.4">The pattern component <span class="bcp14">SHALL</span> be considered to match with any EID component value that is contained in any of the finite intervals of the range.<a href="#section-2.2.1-2.4" class="pilcrow">¶</a>
+<dt id="section-2.4.1-2.3">Range:</dt>
+            <dd style="margin-left: 1.5em" id="section-2.4.1-2.4">The pattern component <span class="bcp14">SHALL</span> be considered to match with any EID component value that is contained in any of the finite intervals of the range.<a href="#section-2.4.1-2.4" class="pilcrow">¶</a>
 </dd>
             <dd class="break"></dd>
-<dt id="section-2.2.1-2.5">Wildcard:</dt>
-            <dd style="margin-left: 1.5em" id="section-2.2.1-2.6">The pattern component <span class="bcp14">SHALL</span> be considered to match with any EID component, if present.<a href="#section-2.2.1-2.6" class="pilcrow">¶</a>
+<dt id="section-2.4.1-2.5">Wildcard:</dt>
+            <dd style="margin-left: 1.5em" id="section-2.4.1-2.6">The pattern component <span class="bcp14">SHALL</span> be considered to match with any EID component, if present.<a href="#section-2.4.1-2.6" class="pilcrow">¶</a>
 </dd>
           <dd class="break"></dd>
 </dl>
-<p id="section-2.2.1-3">
-Because these are dealing with numeric values in an information model, the matching occurs after any encoding-specific normalization (<em>i.e.</em> it's not a text pattern for the text encoding, the matching is performed within the information model of the SSP).<a href="#section-2.2.1-3" class="pilcrow">¶</a></p>
+<p id="section-2.4.1-3">
+Because these are dealing with numeric values in an information model, the matching occurs after any encoding-specific normalization (<em>i.e.</em> it's not a text pattern for the text encoding, the matching is performed within the information model of the SSP).<a href="#section-2.4.1-3" class="pilcrow">¶</a></p>
 </section>
-<section id="section-2.2.2">
+<section id="section-2.4.2">
           <h4 id="name-pattern-set-logic-2">
-<a href="#section-2.2.2" class="section-number selfRef">2.2.2. </a><a href="#name-pattern-set-logic-2" class="section-name selfRef">Pattern Set Logic</a>
+<a href="#section-2.4.2" class="section-number selfRef">2.4.2. </a><a href="#name-pattern-set-logic-2" class="section-name selfRef">Pattern Set Logic</a>
           </h4>
-<p id="section-2.2.2-1">
+<p id="section-2.4.2-1">
 One benefit of using an EID pattern with an information model of a sequence of numbers or ranges is that performing set logic such as intersection or containment is straightforward.
-For set logical behavior, the specific value case is treated as a singleton set and the wildcard case is treated as the unbounded-interval.<a href="#section-2.2.2-1" class="pilcrow">¶</a></p>
-<p id="section-2.2.2-2">
+For set logical behavior, the specific value case is treated as a singleton set and the wildcard case is treated as the unbounded-interval.<a href="#section-2.4.2-1" class="pilcrow">¶</a></p>
+<p id="section-2.4.2-2">
 Two IPN patterns intersect if all of their corresponding components intersect, and the intersection of each component range can be readily computed using multi-interval set logic.
-Likewise, one IPN pattern is a subset (or proper subset) of another pattern if all of the components is a subset (or proper subset) of the other's corresponding component.<a href="#section-2.2.2-2" class="pilcrow">¶</a></p>
+Likewise, one IPN pattern is a subset (or proper subset) of another pattern if all of the components is a subset (or proper subset) of the other's corresponding component.<a href="#section-2.4.2-2" class="pilcrow">¶</a></p>
 </section>
-<section id="section-2.2.3">
+<section id="section-2.4.3">
           <h4 id="name-text-form-2">
-<a href="#section-2.2.3" class="section-number selfRef">2.2.3. </a><a href="#name-text-form-2" class="section-name selfRef">Text Form</a>
+<a href="#section-2.4.3" class="section-number selfRef">2.4.3. </a><a href="#name-text-form-2" class="section-name selfRef">Text Form</a>
           </h4>
-<p id="section-2.2.3-1">
+<p id="section-2.4.3-1">
 The text form of the IPN pattern conforms to the ABNF in <a href="#fig-pattern-ipn-text" class="auto internal xref">Figure 3</a>.
 Each component is separated by the same character "." as in the IPN URI scheme.
 This pattern uses reserved URI characters of "[" and "]" (see <span><a href="https://rfc-editor.org/rfc/rfc3986#section-2.2" class="relref">Section 2.2</a> of [<a href="#RFC3986" class="cite xref">RFC3986</a>]</span>) to indicate the presence of a range set for a component, the character "," to separate each range, and the character "-" to indicate the inclusive range within the set.
 Each of the numeric values within the range is inclusive.
-If the range does not contain two values it is a length-one range.<a href="#section-2.2.3-1" class="pilcrow">¶</a></p>
-<p id="section-2.2.3-2">
-The canonical text form of an IPN pattern <span class="bcp14">SHALL</span> order all range sets in ascending numeric order.<a href="#section-2.2.3-2" class="pilcrow">¶</a></p>
+If the range does not contain two values it is a length-one range.<a href="#section-2.4.3-1" class="pilcrow">¶</a></p>
+<p id="section-2.4.3-2">
+The canonical text form of an IPN pattern <span class="bcp14">SHALL</span> order all range sets in ascending numeric order.<a href="#section-2.4.3-2" class="pilcrow">¶</a></p>
 <span id="name-ipn-pattern-abnf-schema"></span><div id="fig-pattern-ipn-text">
 <figure id="figure-3">
-            <div class="lang-abnf sourcecode" id="section-2.2.3-3.1">
+            <div class="lang-abnf sourcecode" id="section-2.4.3-3.1">
 <pre>
-ipn-pattern = "ipn:" ipn-ssp
+ipn-pat-item = "ipn:" ipn-ssp
 ; Up to three preceding components with a service number
 ipn-ssp = 1*3( ipn-part-pat nbr-delim ) ipn-part-pat
 ipn-part-pat = ipn-number / ipn-range / wildcard
@@ -1864,45 +1951,45 @@ ipn-interval = ipn-number [ "-" ipn-number ]
             </figcaption></figure>
 </div>
 </section>
-<section id="section-2.2.4">
+<section id="section-2.4.4">
           <h4 id="name-cbor-form-2">
-<a href="#section-2.2.4" class="section-number selfRef">2.2.4. </a><a href="#name-cbor-form-2" class="section-name selfRef">CBOR Form</a>
+<a href="#section-2.4.4" class="section-number selfRef">2.4.4. </a><a href="#name-cbor-form-2" class="section-name selfRef">CBOR Form</a>
           </h4>
-<p id="section-2.2.4-1">
+<p id="section-2.4.4-1">
 The CBOR form of the IPN pattern conforms to the CDDL in <a href="#fig-pattern-ipn-cbor" class="auto internal xref">Figure 4</a>.
-Just as in the IPN URI scheme the pattern scheme identifier is 2, the first components of the SSP identify the node and the last component identifies the service.<a href="#section-2.2.4-1" class="pilcrow">¶</a></p>
-<p id="section-2.2.4-2">
-Each of the IPN pattern components <span class="bcp14">SHALL</span> be CBOR encoded as follows:<a href="#section-2.2.4-2" class="pilcrow">¶</a></p>
-<span class="break"></span><dl class="dlParallel" id="section-2.2.4-3">
-            <dt id="section-2.2.4-3.1">Specific value:</dt>
-            <dd style="margin-left: 1.5em" id="section-2.2.4-3.2">A number corresponding to the <code>uint</code> symbol.<a href="#section-2.2.4-3.2" class="pilcrow">¶</a>
+Just as in the IPN URI scheme the pattern scheme identifier is 2, the first components of the SSP identify the node and the last component identifies the service.<a href="#section-2.4.4-1" class="pilcrow">¶</a></p>
+<p id="section-2.4.4-2">
+Each of the IPN pattern components <span class="bcp14">SHALL</span> be CBOR encoded as follows:<a href="#section-2.4.4-2" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-2.4.4-3">
+            <dt id="section-2.4.4-3.1">Specific value:</dt>
+            <dd style="margin-left: 1.5em" id="section-2.4.4-3.2">A number corresponding to the <code>uint</code> symbol.<a href="#section-2.4.4-3.2" class="pilcrow">¶</a>
 </dd>
             <dd class="break"></dd>
-<dt id="section-2.2.4-3.3">Range:</dt>
-            <dd style="margin-left: 1.5em" id="section-2.2.4-3.4">An array item corresponding to the <code>ipn-range</code> symbol.<a href="#section-2.2.4-3.4" class="pilcrow">¶</a>
+<dt id="section-2.4.4-3.3">Range:</dt>
+            <dd style="margin-left: 1.5em" id="section-2.4.4-3.4">An array item corresponding to the <code>ipn-range</code> symbol.<a href="#section-2.4.4-3.4" class="pilcrow">¶</a>
 </dd>
             <dd class="break"></dd>
-<dt id="section-2.2.4-3.5">Wildcard:</dt>
-            <dd style="margin-left: 1.5em" id="section-2.2.4-3.6">The <code>true</code> item.<a href="#section-2.2.4-3.6" class="pilcrow">¶</a>
+<dt id="section-2.4.4-3.5">Wildcard:</dt>
+            <dd style="margin-left: 1.5em" id="section-2.4.4-3.6">The <code>true</code> item.<a href="#section-2.4.4-3.6" class="pilcrow">¶</a>
 </dd>
           <dd class="break"></dd>
 </dl>
-<p id="section-2.2.4-4">
+<p id="section-2.4.4-4">
 The wildcard sentinel values have no intrinsic meaning and were simply chosen to be one-octet-encoded special items.
-The encoding of ranges is a compressed form in which each pair of values in the range indicates:<a href="#section-2.2.4-4" class="pilcrow">¶</a></p>
-<ol start="1" type="1" class="normal type-1" id="section-2.2.4-5">
-            <li id="section-2.2.4-5.1">The non-zero offset from the previous one-past-end-of-range, or the offset from zero if there is no preceding range<a href="#section-2.2.4-5.1" class="pilcrow">¶</a>
+The encoding of ranges is a compressed form in which each pair of values in the range indicates:<a href="#section-2.4.4-4" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-2.4.4-5">
+            <li id="section-2.4.4-5.1">The non-zero offset from the previous one-past-end-of-range, or the offset from zero if there is no preceding range<a href="#section-2.4.4-5.1" class="pilcrow">¶</a>
 </li>
-            <li id="section-2.2.4-5.2">The length of this range, which is inclusive of the first and last contained value so should always be non-zero<a href="#section-2.2.4-5.2" class="pilcrow">¶</a>
+            <li id="section-2.4.4-5.2">The length of this range, which is inclusive of the first and last contained value so should always be non-zero<a href="#section-2.4.4-5.2" class="pilcrow">¶</a>
 </li>
           </ol>
-<p id="section-2.2.4-6">
-Another way to interpret these pairs is that each number indicates the length of alternating "excluded" and "included" intervals for the range.<a href="#section-2.2.4-6" class="pilcrow">¶</a></p>
+<p id="section-2.4.4-6">
+Another way to interpret these pairs is that each number indicates the length of alternating "excluded" and "included" intervals for the range.<a href="#section-2.4.4-6" class="pilcrow">¶</a></p>
 <span id="name-ipn-pattern-cddl-schema"></span><div id="fig-pattern-ipn-cbor">
 <figure id="figure-4">
-            <div class="lang-cddl sourcecode" id="section-2.2.4-7.1">
+            <div class="lang-cddl sourcecode" id="section-2.4.4-7.1">
 <pre>
-$eid-pattern /= [
+$eid-pat-item /= [
   uri-code: 2,
   SSP: ipn-ssp
 ]
@@ -2118,7 +2205,7 @@ The use of this OID is defined in <a href="#sec-tcpcl-cert-profile" class="auto 
 <dd class="break"></dd>
 <dt id="I-D.ietf-dtn-ipn-update">[I-D.ietf-dtn-ipn-update]</dt>
         <dd>
-<span class="refAuthor">Taylor, R.</span> and <span class="refAuthor">E. J. Birrane</span>, <span class="refTitle">"Update to the ipn URI scheme"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-dtn-ipn-update-00</span>, <time datetime="2022-11-07" class="refDate">7 November 2022</time>, <span>&lt;<a href="https://www.ietf.org/archive/id/draft-ietf-dtn-ipn-update-00.txt">https://www.ietf.org/archive/id/draft-ietf-dtn-ipn-update-00.txt</a>&gt;</span>. </dd>
+<span class="refAuthor">Taylor, R.</span> and <span class="refAuthor">E. J. Birrane</span>, <span class="refTitle">"Update to the ipn URI scheme"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-dtn-ipn-update-06</span>, <time datetime="2023-07-25" class="refDate">25 July 2023</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-dtn-ipn-update-06">https://datatracker.ietf.org/doc/html/draft-ietf-dtn-ipn-update-06</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="X.680">[X.680]</dt>
       <dd>
@@ -2142,6 +2229,10 @@ The use of this OID is defined in <a href="#sec-tcpcl-cert-profile" class="auto 
 <dt id="RFC6570">[RFC6570]</dt>
         <dd>
 <span class="refAuthor">Gregorio, J.</span>, <span class="refAuthor">Fielding, R.</span>, <span class="refAuthor">Hadley, M.</span>, <span class="refAuthor">Nottingham, M.</span>, and <span class="refAuthor">D. Orchard</span>, <span class="refTitle">"URI Template"</span>, <span class="seriesInfo">RFC 6570</span>, <span class="seriesInfo">DOI 10.17487/RFC6570</span>, <time datetime="2012-03" class="refDate">March 2012</time>, <span>&lt;<a href="https://www.rfc-editor.org/info/rfc6570">https://www.rfc-editor.org/info/rfc6570</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC9172">[RFC9172]</dt>
+        <dd>
+<span class="refAuthor">Birrane, III, E.</span> and <span class="refAuthor">K. McKeever</span>, <span class="refTitle">"Bundle Protocol Security (BPSec)"</span>, <span class="seriesInfo">RFC 9172</span>, <span class="seriesInfo">DOI 10.17487/RFC9172</span>, <time datetime="2022-01" class="refDate">January 2022</time>, <span>&lt;<a href="https://www.rfc-editor.org/info/rfc9172">https://www.rfc-editor.org/info/rfc9172</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="W3C-PAT">[W3C-PAT]</dt>
       <dd>
@@ -2211,69 +2302,103 @@ END
         <h3 id="name-dtn-patterns">
 <a href="#appendix-B.1" class="section-number selfRef">B.1. </a><a href="#name-dtn-patterns" class="section-name selfRef">DTN Patterns</a>
         </h3>
+<p id="appendix-B.1-1">
+This section contains examples specific to the DTN pattern of <a href="#sec-pattern-dtn" class="auto internal xref">Section 2.3</a>.<a href="#appendix-B.1-1" class="pilcrow">¶</a></p>
 <section id="appendix-B.1.1">
           <h4 id="name-exact-match">
 <a href="#appendix-B.1.1" class="section-number selfRef">B.1.1. </a><a href="#name-exact-match" class="section-name selfRef">Exact Match</a>
           </h4>
 <p id="appendix-B.1.1-1">
-This trivial example matches only one EID (which itself has the same text form)
-<code>dtn://node/service</code>
-which has a CBOR form of:<a href="#appendix-B.1.1-1" class="pilcrow">¶</a></p>
-<div class="lang-cbor sourcecode" id="appendix-B.1.1-2">
+This trivial example matches only one EID (which itself has the same text form)<a href="#appendix-B.1.1-1" class="pilcrow">¶</a></p>
+<div class="lang-eidpat sourcecode" id="appendix-B.1.1-2">
 <pre>
-[1, ["node", "service"]]
+dtn://node/service
 </pre><a href="#appendix-B.1.1-2" class="pilcrow">¶</a>
 </div>
 <p id="appendix-B.1.1-3">
-An example of normalized matching is that the pattern <code>dtn://node/service</code> will still match the EIDs <code>dtn://node/ser%76ice</code> and <code>dtn://no%64e/service</code> because each component match is performed in percent-decoded and UTF-8 decoded form.<a href="#appendix-B.1.1-3" class="pilcrow">¶</a></p>
+which has a CBOR form of:<a href="#appendix-B.1.1-3" class="pilcrow">¶</a></p>
+<div class="lang-cbor sourcecode" id="appendix-B.1.1-4">
+<pre>
+[[1, ["node", "service"]]]
+</pre><a href="#appendix-B.1.1-4" class="pilcrow">¶</a>
+</div>
+<p id="appendix-B.1.1-5">
+An example of normalized matching is that the pattern<a href="#appendix-B.1.1-5" class="pilcrow">¶</a></p>
+<div class="lang-eidpat sourcecode" id="appendix-B.1.1-6">
+<pre>
+dtn://node/service
+</pre><a href="#appendix-B.1.1-6" class="pilcrow">¶</a>
+</div>
+<p id="appendix-B.1.1-7">
+will still match the EIDs <code>dtn://node/ser%76ice</code> and <code>dtn://no%64e/service</code> because each component match is performed in percent-decoded and UTF-8 decoded form.<a href="#appendix-B.1.1-7" class="pilcrow">¶</a></p>
 </section>
 <section id="appendix-B.1.2">
           <h4 id="name-wildcards">
 <a href="#appendix-B.1.2" class="section-number selfRef">B.1.2. </a><a href="#name-wildcards" class="section-name selfRef">Wildcards</a>
           </h4>
 <p id="appendix-B.1.2-1">
-This example matches a single-segment service demux on a single node
-<code>dtn://node/*</code>
-which has a CBOR form of:<a href="#appendix-B.1.2-1" class="pilcrow">¶</a></p>
-<div class="lang-cbor sourcecode" id="appendix-B.1.2-2">
+This example matches a single-segment service demux on a single node<a href="#appendix-B.1.2-1" class="pilcrow">¶</a></p>
+<div class="lang-eidpat sourcecode" id="appendix-B.1.2-2">
 <pre>
-[1, ["node", true]]
+dtn://node/*
 </pre><a href="#appendix-B.1.2-2" class="pilcrow">¶</a>
 </div>
 <p id="appendix-B.1.2-3">
-That single wildcard will match the empty demux <code>dtn://node/</code> but will not match demux paths such as <code>dtn://node/long/name</code> or any more segments.<a href="#appendix-B.1.2-3" class="pilcrow">¶</a></p>
-<aside id="appendix-B.1.2-4">
-            <p id="appendix-B.1.2-4.1">
+which has a CBOR form of:<a href="#appendix-B.1.2-3" class="pilcrow">¶</a></p>
+<div class="lang-cbor sourcecode" id="appendix-B.1.2-4">
+<pre>
+[[1, ["node", true]]]
+</pre><a href="#appendix-B.1.2-4" class="pilcrow">¶</a>
+</div>
+<p id="appendix-B.1.2-5">
+That single wildcard will match the empty demux <code>dtn://node/</code> but will not match demux paths such as <code>dtn://node/long/name</code> or any more segments.<a href="#appendix-B.1.2-5" class="pilcrow">¶</a></p>
+<aside id="appendix-B.1.2-6">
+            <p id="appendix-B.1.2-6.1">
 EDITORIAL NOTE:
 Do we want the wildcard to actually match the empty segment?
-Or would it be better to handle that separately so that the above pattern does not match the empty demux?<a href="#appendix-B.1.2-4.1" class="pilcrow">¶</a></p>
+Or would it be better to handle that separately so that the above pattern does not match the empty demux?<a href="#appendix-B.1.2-6.1" class="pilcrow">¶</a></p>
 </aside>
-<p id="appendix-B.1.2-5">
-This example matches all service demux on a single node with a multi-wildcard
-<code>dtn://node/**</code>
-which has a CBOR form of:<a href="#appendix-B.1.2-5" class="pilcrow">¶</a></p>
-<div class="lang-cbor sourcecode" id="appendix-B.1.2-6">
-<pre>
-[1, ["node", false]]
-</pre><a href="#appendix-B.1.2-6" class="pilcrow">¶</a>
-</div>
 <p id="appendix-B.1.2-7">
-This example matches a service demux with a prefix segment "pre"
-<code>dtn://node/pre/**</code>
-which has a CBOR form of:<a href="#appendix-B.1.2-7" class="pilcrow">¶</a></p>
-<div class="lang-cbor sourcecode" id="appendix-B.1.2-8">
+This example matches all service demux on a single node with a multi-wildcard<a href="#appendix-B.1.2-7" class="pilcrow">¶</a></p>
+<div class="lang-eidpat sourcecode" id="appendix-B.1.2-8">
 <pre>
-[1, ["node", "pre", false]]
+dtn://node/**
 </pre><a href="#appendix-B.1.2-8" class="pilcrow">¶</a>
 </div>
 <p id="appendix-B.1.2-9">
-This example matches all node names having the same service demux
-<code>dtn://**/some/serv</code>
 which has a CBOR form of:<a href="#appendix-B.1.2-9" class="pilcrow">¶</a></p>
 <div class="lang-cbor sourcecode" id="appendix-B.1.2-10">
 <pre>
-[1, [false, "some", "serv"]]
+[[1, ["node", false]]]
 </pre><a href="#appendix-B.1.2-10" class="pilcrow">¶</a>
+</div>
+<p id="appendix-B.1.2-11">
+This example matches a service demux with a prefix segment "pre"<a href="#appendix-B.1.2-11" class="pilcrow">¶</a></p>
+<div class="lang-eidpat sourcecode" id="appendix-B.1.2-12">
+<pre>
+dtn://node/pre/**
+</pre><a href="#appendix-B.1.2-12" class="pilcrow">¶</a>
+</div>
+<p id="appendix-B.1.2-13">
+which has a CBOR form of:<a href="#appendix-B.1.2-13" class="pilcrow">¶</a></p>
+<div class="lang-cbor sourcecode" id="appendix-B.1.2-14">
+<pre>
+[[1, ["node", "pre", false]]]
+</pre><a href="#appendix-B.1.2-14" class="pilcrow">¶</a>
+</div>
+<p id="appendix-B.1.2-15">
+This example matches all node names having the same service demux<a href="#appendix-B.1.2-15" class="pilcrow">¶</a></p>
+<div class="lang-eidpat sourcecode" id="appendix-B.1.2-16">
+<pre>
+dtn://**/some/serv
+</pre><a href="#appendix-B.1.2-16" class="pilcrow">¶</a>
+</div>
+<p id="appendix-B.1.2-17">
+which has a CBOR form of:<a href="#appendix-B.1.2-17" class="pilcrow">¶</a></p>
+<div class="lang-cbor sourcecode" id="appendix-B.1.2-18">
+<pre>
+[[1, [false, "some", "serv"]]]
+</pre><a href="#appendix-B.1.2-18" class="pilcrow">¶</a>
 </div>
 </section>
 <section id="appendix-B.1.3">
@@ -2281,13 +2406,18 @@ which has a CBOR form of:<a href="#appendix-B.1.2-9" class="pilcrow">¶</a></p>
 <a href="#appendix-B.1.3" class="section-number selfRef">B.1.3. </a><a href="#name-regular-expression-match" class="section-name selfRef">Regular Expression Match</a>
           </h4>
 <p id="appendix-B.1.3-1">
-This example includes a single regular expression for single-segment service that starts with the letter "a" in the text form of
-<code>dtn://**/[^a]</code>
-which has a CBOR form of:<a href="#appendix-B.1.3-1" class="pilcrow">¶</a></p>
-<div class="lang-cbor sourcecode" id="appendix-B.1.3-2">
+This example includes a single regular expression for single-segment service that starts with the letter "a" in the text form of<a href="#appendix-B.1.3-1" class="pilcrow">¶</a></p>
+<div class="lang-eidpat sourcecode" id="appendix-B.1.3-2">
 <pre>
-[1, [false, 35("^a")]]
+dtn://**/[^a]
 </pre><a href="#appendix-B.1.3-2" class="pilcrow">¶</a>
+</div>
+<p id="appendix-B.1.3-3">
+which has a CBOR form of:<a href="#appendix-B.1.3-3" class="pilcrow">¶</a></p>
+<div class="lang-cbor sourcecode" id="appendix-B.1.3-4">
+<pre>
+[[1, [false, 35("^a")]]]
+</pre><a href="#appendix-B.1.3-4" class="pilcrow">¶</a>
 </div>
 </section>
 </section>
@@ -2297,18 +2427,25 @@ which has a CBOR form of:<a href="#appendix-B.1.3-1" class="pilcrow">¶</a></p>
         <h3 id="name-ipn-patterns">
 <a href="#appendix-B.2" class="section-number selfRef">B.2. </a><a href="#name-ipn-patterns" class="section-name selfRef">IPN Patterns</a>
         </h3>
+<p id="appendix-B.2-1">
+This section contains examples specific to the IPN pattern of <a href="#sec-pattern-ipn" class="auto internal xref">Section 2.4</a>.<a href="#appendix-B.2-1" class="pilcrow">¶</a></p>
 <section id="appendix-B.2.1">
           <h4 id="name-exact-match-2">
 <a href="#appendix-B.2.1" class="section-number selfRef">B.2.1. </a><a href="#name-exact-match-2" class="section-name selfRef">Exact Match</a>
           </h4>
 <p id="appendix-B.2.1-1">
-This trivial example matches only one EID (which itself has the same text and CBOR forms)
-<code>ipn:0.3.4</code>
-which has a CBOR form of:<a href="#appendix-B.2.1-1" class="pilcrow">¶</a></p>
-<div class="lang-cbor sourcecode" id="appendix-B.2.1-2">
+This trivial example matches only one EID (which itself has the same text and CBOR forms)<a href="#appendix-B.2.1-1" class="pilcrow">¶</a></p>
+<div class="lang-eidpat sourcecode" id="appendix-B.2.1-2">
 <pre>
-[2, [0, 3, 4]]
+ipn:0.3.4
 </pre><a href="#appendix-B.2.1-2" class="pilcrow">¶</a>
+</div>
+<p id="appendix-B.2.1-3">
+which has a CBOR form of:<a href="#appendix-B.2.1-3" class="pilcrow">¶</a></p>
+<div class="lang-cbor sourcecode" id="appendix-B.2.1-4">
+<pre>
+[[2, [0, 3, 4]]]
+</pre><a href="#appendix-B.2.1-4" class="pilcrow">¶</a>
 </div>
 </section>
 <section id="appendix-B.2.2">
@@ -2316,22 +2453,32 @@ which has a CBOR form of:<a href="#appendix-B.2.1-1" class="pilcrow">¶</a></p>
 <a href="#appendix-B.2.2" class="section-number selfRef">B.2.2. </a><a href="#name-single-wildcard-match" class="section-name selfRef">Single Wildcard Match</a>
           </h4>
 <p id="appendix-B.2.2-1">
-This example matches all service numbers on a single node
-<code>ipn:0.3.*</code>
-which has a CBOR form of:<a href="#appendix-B.2.2-1" class="pilcrow">¶</a></p>
-<div class="lang-cbor sourcecode" id="appendix-B.2.2-2">
+This example matches all service numbers on a single node<a href="#appendix-B.2.2-1" class="pilcrow">¶</a></p>
+<div class="lang-eidpat sourcecode" id="appendix-B.2.2-2">
 <pre>
-[2, [0, 3, true]]
+ipn:0.3.*
 </pre><a href="#appendix-B.2.2-2" class="pilcrow">¶</a>
 </div>
 <p id="appendix-B.2.2-3">
-This example matches all no-authority nodes with the same service number
-<code>ipn:*.4</code>
 which has a CBOR form of:<a href="#appendix-B.2.2-3" class="pilcrow">¶</a></p>
 <div class="lang-cbor sourcecode" id="appendix-B.2.2-4">
 <pre>
-[2, [true, 4]]
+[[2, [0, 3, true]]]
 </pre><a href="#appendix-B.2.2-4" class="pilcrow">¶</a>
+</div>
+<p id="appendix-B.2.2-5">
+This example matches all no-authority nodes with the same service number<a href="#appendix-B.2.2-5" class="pilcrow">¶</a></p>
+<div class="lang-eidpat sourcecode" id="appendix-B.2.2-6">
+<pre>
+ipn:*.4
+</pre><a href="#appendix-B.2.2-6" class="pilcrow">¶</a>
+</div>
+<p id="appendix-B.2.2-7">
+which has a CBOR form of:<a href="#appendix-B.2.2-7" class="pilcrow">¶</a></p>
+<div class="lang-cbor sourcecode" id="appendix-B.2.2-8">
+<pre>
+[[2, [true, 4]]]
+</pre><a href="#appendix-B.2.2-8" class="pilcrow">¶</a>
 </div>
 </section>
 <section id="appendix-B.2.3">
@@ -2339,36 +2486,113 @@ which has a CBOR form of:<a href="#appendix-B.2.2-3" class="pilcrow">¶</a></p>
 <a href="#appendix-B.2.3" class="section-number selfRef">B.2.3. </a><a href="#name-range-match" class="section-name selfRef">Range Match</a>
           </h4>
 <p id="appendix-B.2.3-1">
-This example includes a single range over the service numbers <code>ipn:0.3.0</code> to <code>ipn:0.3.19</code> inclusive as
-<code>ipn:0.3.[0-19]</code>
-which has a CBOR form of:<a href="#appendix-B.2.3-1" class="pilcrow">¶</a></p>
-<div class="lang-cbor sourcecode" id="appendix-B.2.3-2">
+This example includes a single range over the service numbers <code>ipn:0.3.0</code> to <code>ipn:0.3.19</code> inclusive as<a href="#appendix-B.2.3-1" class="pilcrow">¶</a></p>
+<div class="lang-eidpat sourcecode" id="appendix-B.2.3-2">
 <pre>
-[2, [0, 3, [0, 20]]]
+ipn:0.3.[0-19]
 </pre><a href="#appendix-B.2.3-2" class="pilcrow">¶</a>
 </div>
 <p id="appendix-B.2.3-3">
-This example includes an offset range over the service numbers <code>ipn:0.3.10</code> to <code>ipn:0.3.19</code> inclusive as
-<code>ipn:0.3.[10-19]</code>
 which has a CBOR form of:<a href="#appendix-B.2.3-3" class="pilcrow">¶</a></p>
 <div class="lang-cbor sourcecode" id="appendix-B.2.3-4">
 <pre>
-[2, [0, 3, [10, 10]]]
+[[2, [0, 3, [0, 20]]]]
 </pre><a href="#appendix-B.2.3-4" class="pilcrow">¶</a>
 </div>
 <p id="appendix-B.2.3-5">
-This example includes multiple ranges of service numbers <code>ipn:0.3.0</code> to <code>ipn:0.3.4</code> and <code>ipn:0.3.10</code> to <code>ipn:0.3.19</code> inclusive as
-<code>ipn:0.3.[0-4,10-19]</code>
-which has a CBOR form of:<a href="#appendix-B.2.3-5" class="pilcrow">¶</a></p>
-<div class="lang-cbor sourcecode" id="appendix-B.2.3-6">
+This example includes an offset range over the service numbers <code>ipn:0.3.10</code> to <code>ipn:0.3.19</code> inclusive as<a href="#appendix-B.2.3-5" class="pilcrow">¶</a></p>
+<div class="lang-eidpat sourcecode" id="appendix-B.2.3-6">
 <pre>
-[2, [0, 3, [0, 5, 5, 10]]]
+ipn:0.3.[10-19]
 </pre><a href="#appendix-B.2.3-6" class="pilcrow">¶</a>
 </div>
 <p id="appendix-B.2.3-7">
-An overlapping or contiguous pattern such as <code>ipn:0.3.[0-9,10-19]</code> or <code>ipn:0.3.[0-15,10-19]</code> or <code>ipn:0.3.[10-19,0-9]</code> would be normalized to <code>ipn:0.3.[0-19]</code>.<a href="#appendix-B.2.3-7" class="pilcrow">¶</a></p>
-<p id="appendix-B.2.3-8">
-An unordered pattern such as <code>ipn:0.3.[10-19,0-4]</code> would be normalized to <code>ipn:0.3.[0-4,10-19]</code>.<a href="#appendix-B.2.3-8" class="pilcrow">¶</a></p>
+which has a CBOR form of:<a href="#appendix-B.2.3-7" class="pilcrow">¶</a></p>
+<div class="lang-cbor sourcecode" id="appendix-B.2.3-8">
+<pre>
+[[2, [0, 3, [10, 10]]]]
+</pre><a href="#appendix-B.2.3-8" class="pilcrow">¶</a>
+</div>
+<p id="appendix-B.2.3-9">
+This example includes multiple ranges of service numbers <code>ipn:0.3.0</code> to <code>ipn:0.3.4</code> and <code>ipn:0.3.10</code> to <code>ipn:0.3.19</code> inclusive as<a href="#appendix-B.2.3-9" class="pilcrow">¶</a></p>
+<div class="lang-eidpat sourcecode" id="appendix-B.2.3-10">
+<pre>
+ipn:0.3.[0-4,10-19]
+</pre><a href="#appendix-B.2.3-10" class="pilcrow">¶</a>
+</div>
+<p id="appendix-B.2.3-11">
+which has a CBOR form of:<a href="#appendix-B.2.3-11" class="pilcrow">¶</a></p>
+<div class="lang-cbor sourcecode" id="appendix-B.2.3-12">
+<pre>
+[[2, [0, 3, [0, 5, 5, 10]]]]
+</pre><a href="#appendix-B.2.3-12" class="pilcrow">¶</a>
+</div>
+<p id="appendix-B.2.3-13">
+An overlapping or contiguous pattern such as <code>ipn:0.3.[0-9,10-19]</code> or <code>ipn:0.3.[0-15,10-19]</code> or <code>ipn:0.3.[10-19,0-9]</code> would be normalized to<a href="#appendix-B.2.3-13" class="pilcrow">¶</a></p>
+<div class="lang-eidpat sourcecode" id="appendix-B.2.3-14">
+<pre>
+ipn:0.3.[0-19]
+</pre><a href="#appendix-B.2.3-14" class="pilcrow">¶</a>
+</div>
+<p id="appendix-B.2.3-15">
+An unordered pattern such as <code>ipn:0.3.[10-19,0-4]</code> would be normalized to<a href="#appendix-B.2.3-15" class="pilcrow">¶</a></p>
+<div class="lang-eidpat sourcecode" id="appendix-B.2.3-16">
+<pre>
+ipn:0.3.[0-4,10-19]
+</pre><a href="#appendix-B.2.3-16" class="pilcrow">¶</a>
+</div>
+</section>
+</section>
+</div>
+<div id="sec-ex-pattern-multi">
+<section id="appendix-B.3">
+        <h3 id="name-combined-patterns">
+<a href="#appendix-B.3" class="section-number selfRef">B.3. </a><a href="#name-combined-patterns" class="section-name selfRef">Combined Patterns</a>
+        </h3>
+<p id="appendix-B.3-1">
+This section contains examples of patterns combining items.<a href="#appendix-B.3-1" class="pilcrow">¶</a></p>
+<section id="appendix-B.3.1">
+          <h4 id="name-any-scheme-match">
+<a href="#appendix-B.3.1" class="section-number selfRef">B.3.1. </a><a href="#name-any-scheme-match" class="section-name selfRef">Any-Scheme Match</a>
+          </h4>
+<p id="appendix-B.3.1-1">
+This trivial example matches any possible EID.
+It's text form is:<a href="#appendix-B.3.1-1" class="pilcrow">¶</a></p>
+<div class="lang-eidpat sourcecode" id="appendix-B.3.1-2">
+<pre>
+***
+</pre><a href="#appendix-B.3.1-2" class="pilcrow">¶</a>
+</div>
+<p id="appendix-B.3.1-3">
+and its CBOR form is:<a href="#appendix-B.3.1-3" class="pilcrow">¶</a></p>
+<div class="lang-cbor sourcecode" id="appendix-B.3.1-4">
+<pre>
+true
+</pre><a href="#appendix-B.3.1-4" class="pilcrow">¶</a>
+</div>
+</section>
+<section id="appendix-B.3.2">
+          <h4 id="name-multiple-scheme-match">
+<a href="#appendix-B.3.2" class="section-number selfRef">B.3.2. </a><a href="#name-multiple-scheme-match" class="section-name selfRef">Multiple Scheme Match</a>
+          </h4>
+<p id="appendix-B.3.2-1">
+This example combines exact match items for each scheme together in one pattern, it will match <code>dtn://node/service</code> and <code>ipn:0.3.4</code>
+It's text form is:<a href="#appendix-B.3.2-1" class="pilcrow">¶</a></p>
+<div class="lang-eidpat sourcecode" id="appendix-B.3.2-2">
+<pre>
+dtn://node/service|ipn:0.3.4
+</pre><a href="#appendix-B.3.2-2" class="pilcrow">¶</a>
+</div>
+<p id="appendix-B.3.2-3">
+and its CBOR form is:<a href="#appendix-B.3.2-3" class="pilcrow">¶</a></p>
+<div class="lang-cbor sourcecode" id="appendix-B.3.2-4">
+<pre>
+[
+  [1, ["node", "service"]],
+  [2, [0, 3, 4]]
+]
+</pre><a href="#appendix-B.3.2-4" class="pilcrow">¶</a>
+</div>
 </section>
 </section>
 </div>

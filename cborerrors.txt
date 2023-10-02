@@ -1,109 +1,143 @@
 INFO:root:Processing element text:
-[1, ["node", "service"]]
+[[1, ["node", "service"]]]
 INFO:root:Processing element text:
-[1, ["node", true]]
+[[1, ["node", true]]]
 INFO:root:Processing element text:
-[1, ["node", false]]
+[[1, ["node", false]]]
 INFO:root:Processing element text:
-[1, ["node", "pre", false]]
+[[1, ["node", "pre", false]]]
 INFO:root:Processing element text:
-[1, [false, "some", "serv"]]
+[[1, [false, "some", "serv"]]]
 INFO:root:Processing element text:
-[1, [false, 35("^a")]]
+[[1, [false, 35("^a")]]]
 INFO:root:Processing element text:
-[2, [0, 3, 4]]
+[[2, [0, 3, 4]]]
 INFO:root:Processing element text:
-[2, [0, 3, true]]
+[[2, [0, 3, true]]]
 INFO:root:Processing element text:
-[2, [true, 4]]
+[[2, [true, 4]]]
 INFO:root:Processing element text:
-[2, [0, 3, [0, 20]]]
+[[2, [0, 3, [0, 20]]]]
 INFO:root:Processing element text:
-[2, [0, 3, [10, 10]]]
+[[2, [0, 3, [10, 10]]]]
 INFO:root:Processing element text:
-[2, [0, 3, [0, 5, 5, 10]]]
-82                      # array(2)
-   01                   # unsigned(1)
-   82                   # array(2)
-      64                # text(4)
-         6e6f6465       # "node"
-      67                # text(7)
-         73657276696365 # "service"
-82                # array(2)
-   01             # unsigned(1)
-   82             # array(2)
-      64          # text(4)
-         6e6f6465 # "node"
-      f5          # primitive(21)
-82                # array(2)
-   01             # unsigned(1)
-   82             # array(2)
-      64          # text(4)
-         6e6f6465 # "node"
-      f4          # primitive(20)
-82                # array(2)
-   01             # unsigned(1)
-   83             # array(3)
-      64          # text(4)
-         6e6f6465 # "node"
-      63          # text(3)
-         707265   # "pre"
-      f4          # primitive(20)
-82                # array(2)
-   01             # unsigned(1)
-   83             # array(3)
-      f4          # primitive(20)
-      64          # text(4)
-         736f6d65 # "some"
-      64          # text(4)
-         73657276 # "serv"
-82               # array(2)
-   01            # unsigned(1)
-   82            # array(2)
-      f4         # primitive(20)
-      d8 23      # tag(35)
-         62      # text(2)
-            5e61 # "^a"
-82       # array(2)
-   02    # unsigned(2)
-   83    # array(3)
-      00 # unsigned(0)
-      03 # unsigned(3)
-      04 # unsigned(4)
-82       # array(2)
-   02    # unsigned(2)
-   83    # array(3)
-      00 # unsigned(0)
-      03 # unsigned(3)
-      f5 # primitive(21)
-82       # array(2)
-   02    # unsigned(2)
-   82    # array(2)
-      f5 # primitive(21)
-      04 # unsigned(4)
-82          # array(2)
-   02       # unsigned(2)
-   83       # array(3)
-      00    # unsigned(0)
-      03    # unsigned(3)
-      82    # array(2)
+[[2, [0, 3, [0, 5, 5, 10]]]]
+INFO:root:Processing element text:
+true
+INFO:root:Processing element text:
+[
+  [1, ["node", "service"]],
+  [2, [0, 3, 4]]
+]
+81                         # array(1)
+   82                      # array(2)
+      01                   # unsigned(1)
+      82                   # array(2)
+         64                # text(4)
+            6e6f6465       # "node"
+         67                # text(7)
+            73657276696365 # "service"
+81                   # array(1)
+   82                # array(2)
+      01             # unsigned(1)
+      82             # array(2)
+         64          # text(4)
+            6e6f6465 # "node"
+         f5          # primitive(21)
+81                   # array(1)
+   82                # array(2)
+      01             # unsigned(1)
+      82             # array(2)
+         64          # text(4)
+            6e6f6465 # "node"
+         f4          # primitive(20)
+81                   # array(1)
+   82                # array(2)
+      01             # unsigned(1)
+      83             # array(3)
+         64          # text(4)
+            6e6f6465 # "node"
+         63          # text(3)
+            707265   # "pre"
+         f4          # primitive(20)
+81                   # array(1)
+   82                # array(2)
+      01             # unsigned(1)
+      83             # array(3)
+         f4          # primitive(20)
+         64          # text(4)
+            736f6d65 # "some"
+         64          # text(4)
+            73657276 # "serv"
+81                  # array(1)
+   82               # array(2)
+      01            # unsigned(1)
+      82            # array(2)
+         f4         # primitive(20)
+         d8 23      # tag(35)
+            62      # text(2)
+               5e61 # "^a"
+81          # array(1)
+   82       # array(2)
+      02    # unsigned(2)
+      83    # array(3)
          00 # unsigned(0)
-         14 # unsigned(20)
-82          # array(2)
-   02       # unsigned(2)
-   83       # array(3)
-      00    # unsigned(0)
-      03    # unsigned(3)
-      82    # array(2)
-         0a # unsigned(10)
-         0a # unsigned(10)
-82          # array(2)
-   02       # unsigned(2)
-   83       # array(3)
-      00    # unsigned(0)
-      03    # unsigned(3)
-      84    # array(4)
+         03 # unsigned(3)
+         04 # unsigned(4)
+81          # array(1)
+   82       # array(2)
+      02    # unsigned(2)
+      83    # array(3)
          00 # unsigned(0)
-         05 # unsigned(5)
-         05 # unsigned(5)
-         0a # unsigned(10)
+         03 # unsigned(3)
+         f5 # primitive(21)
+81          # array(1)
+   82       # array(2)
+      02    # unsigned(2)
+      82    # array(2)
+         f5 # primitive(21)
+         04 # unsigned(4)
+81             # array(1)
+   82          # array(2)
+      02       # unsigned(2)
+      83       # array(3)
+         00    # unsigned(0)
+         03    # unsigned(3)
+         82    # array(2)
+            00 # unsigned(0)
+            14 # unsigned(20)
+81             # array(1)
+   82          # array(2)
+      02       # unsigned(2)
+      83       # array(3)
+         00    # unsigned(0)
+         03    # unsigned(3)
+         82    # array(2)
+            0a # unsigned(10)
+            0a # unsigned(10)
+81             # array(1)
+   82          # array(2)
+      02       # unsigned(2)
+      83       # array(3)
+         00    # unsigned(0)
+         03    # unsigned(3)
+         84    # array(4)
+            00 # unsigned(0)
+            05 # unsigned(5)
+            05 # unsigned(5)
+            0a # unsigned(10)
+f5 # primitive(21)
+82                         # array(2)
+   82                      # array(2)
+      01                   # unsigned(1)
+      82                   # array(2)
+         64                # text(4)
+            6e6f6465       # "node"
+         67                # text(7)
+            73657276696365 # "service"
+   82                      # array(2)
+      02                   # unsigned(2)
+      83                   # array(3)
+         00                # unsigned(0)
+         03                # unsigned(3)
+         04                # unsigned(4)

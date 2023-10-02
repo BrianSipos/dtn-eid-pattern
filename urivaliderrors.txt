@@ -66,3 +66,11 @@ INFO:root:Processing element text:
 ipn:0.3.[10-19,0-4]
 INFO:root:Processing element text:
 ipn:0.3.[0-4,10-19]
+INFO:root:Processing element text:
+***
+INFO:root:Processing element text:
+dtn://node/service
+INFO:root:Processing element text:
+ipn:0.3.4
+INFO:root:Processing element text:
+dtn://node/service|ipn:0.3.4

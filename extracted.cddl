@@ -1,10 +1,16 @@
 
 start = eid-pattern
 
-eid-pattern = $eid-pattern .within eid-structure
+
+eid-pattern = any-scheme-item / eid-pattern-set
+eid-pattern-set = [1* eid-pattern-item]
+eid-pattern-item = $eid-pat-item .within eid-structure
 
 
-$eid-pattern /= [
+any-scheme-item = true
+
+
+$eid-pat-item /= [
   uri-code: 1,
   SSP: dtn-ssp
 ]
@@ -30,7 +36,7 @@ dtn-wkssp-exact = $dtn-wkssp .within uint
 $dtn-wkssp /= 0  ; For "none"
 
 
-$eid-pattern /= [
+$eid-pat-item /= [
   uri-code: 2,
   SSP: ipn-ssp
 ]
