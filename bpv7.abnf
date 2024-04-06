@@ -1,4 +1,5 @@
 ; From RFC 3986
+scheme = ALPHA *( ALPHA / DIGIT / "+" / "-" / "." )
 pchar = unreserved / pct-encoded / sub-delims / ":" / "@"
 pct-encoded   = "%" HEXDIG HEXDIG
 unreserved    = ALPHA / DIGIT / "-" / "." / "_" / "~"

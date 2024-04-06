@@ -44,7 +44,7 @@ def main():
             parts[0] += text + '\n'
         else:
             parts.append(text)
-        LOGGER.info('Processing element text:\n%s', text)
+        LOGGER.debug('Processing element text:\n%s', text)
 
     exitcodes = []
     for part in parts:
@@ -52,7 +52,7 @@ def main():
         proc.communicate(part.encode('utf8'))
         proc.stdin.close()
         exitcodes.append(proc.wait())
-    
+
     return max(exitcodes) if exitcodes else 0
 
 
