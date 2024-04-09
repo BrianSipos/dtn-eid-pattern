@@ -59,7 +59,7 @@ One other aspect of this patterning mechanism is that the text form of each sche
       <section>
         <name>Scope</name>
         <t>
-This document defines a logical model of pattern matching BP Endpoint IDs and both text and CBOR encoding forms, as well as a PKIX extension to make use of an EID Pattern.
+This document defines a logical model of pattern matching BP Endpoint IDs and both text and CBOR encoding forms, as well as PKIX extensions to make use of EID Patterns.
         </t>
         <t>
 This document does not define a method of disambiguating an EID from an EID Pattern (in either encoded form) without any other context.
@@ -84,9 +84,11 @@ The following initial fragment defines the top-level rules of this document's AB
 ; Shared wildcard rules
 wildcard = "*"
 multi-wildcard = "**"
+
+non-zero-number = (%x31-39 *DIGIT)
         </sourcecode>
         <t>
-From the document <xref target="RFC3986"/> the definition is taken for <tt>pchar</tt>.
+From the document <xref target="RFC3986"/> the definition is taken for <tt>pchar</tt> and <tt>scheme</tt>.
 From the document <xref target="RFC5234"/> the definition is taken for <tt>digit</tt>.
 From the document <xref target="RFC9171"/> the definition is taken for <tt>nbr-delim</tt>.
         </t>
@@ -156,8 +158,9 @@ Because the delimiter is used between items, an EID pattern with one item has an
         <sourcecode type="abnf">
 eid-pattern = any-scheme-item / eid-pattern-set
 eid-pattern-set = eid-pattern-item *( "|" eid-pattern-item )
+eid-pattern-item = scheme-pat-item / any-ssp-item
 ; Limited to these schemes for now
-eid-pattern-item = ipn-pat-item / dtn-pat-item
+scheme-pat-item = ipn-pat-item / dtn-pat-item
         </sourcecode>
         <t>
 The CBOR form of the EID pattern is the following, which uses an enveloping array to contain the items.
@@ -167,7 +170,9 @@ Because there is otherwise always an outer array, there is no concept of a "bare
         <sourcecode type="cddl">
 eid-pattern = any-scheme-item / eid-pattern-set
 eid-pattern-set = [1* eid-pattern-item]
-eid-pattern-item = $eid-pat-item .within eid-structure
+eid-pattern-item = scheme-pat-item / any-ssp-item
+; Each pattern still follows eid-structure
+scheme-pat-item = $eid-pat-item .within eid-structure
         </sourcecode>
       </section>
       <section anchor="sec-pattern-anyscheme">
@@ -185,7 +190,7 @@ The text form of the any-scheme pattern is the following exact text.
 As defined in <xref target="sec-pattern-top"/>, when this text form is present it cannot be combined with other items.
         </t>
         <sourcecode type="abnf">
-any-scheme-item = "***"
+any-scheme-item = wildcard ":" multi-wildcard
         </sourcecode>
         <t>
 The CBOR form of the any-scheme pattern is the following exact value.
@@ -194,6 +199,44 @@ As defined in <xref target="sec-pattern-top"/>, when this CBOR form is present i
         <sourcecode type="cddl">
 any-scheme-item = true
         </sourcecode>
+      </section>
+      <section anchor="sec-pattern-arbscheme">
+        <name>Any-SSP Pattern Item</name>
+        <t>
+The next most generic pattern item is one which will match any SSP within a specific URI scheme.
+This includes schemes known to the EID handler as well as schemes by enumerated integer that need not be understood by the EID handler.
+        </t>
+        <t>
+When an any-SSP item is present in an EID pattern, it <bcp14>SHALL</bcp14> be the only item for the associated scheme.
+Any other, scheme-specific items would be redundant and unnecessary when combined with the any-SSP item for that same scheme.
+        </t>
+        <t>
+The text form of the any-SSP pattern is the following ABNF, where the scheme part can either be a proper URI <tt>scheme</tt> or a postive integer value (valid values are restricted by the scheme registry <xref target="IANA-BP"/>).
+        </t>
+        <sourcecode type="abnf">
+any-ssp-item = (scheme / non-zero-number) ":" multi-wildcard
+        </sourcecode>
+        <t>
+The CBOR form of the any-SSP pattern is the following CDDL.
+Because this does not match the <tt>eid-structure</tt> rule, it is guaranteed to be disambiguated with any current or future scheme-specific <tt>$eid-pat-item</tt> socket uses.
+        </t>
+        <sourcecode type="cddl">
+any-ssp-item = (uint .gt 0) / tstr
+        </sourcecode>
+        <section>
+          <name>EID Matching</name>
+          <t>
+An any-SSP pattern <bcp14>SHALL</bcp14> be considered to match a specific EID when both have the same normalized scheme.
+For schemes which are known to the processing entity, the integer form <bcp14>SHALL</bcp14> be the normalized form.
+For schemes which are unkown to the processing entity, the text form of the any-SSP pattern scheme <bcp14>SHALL</bcp14> be used to match text-form EIDs and the integer form of the pattern scheme <bcp14>SHALL</bcp14> be used to match CBOR-form EIDs.
+          </t>
+          <t>
+This means that for entities that cannot process a specific (fictional) private-use scheme with value 65536 and name "example", the following pattern will guarantee proper handling by any entity:
+          </t>
+<sourcecode type="eidpat">
+example:**|65536:**
+</sourcecode>
+        </section>
       </section>
       <section anchor="sec-pattern-dtn">
         <name>DTN Scheme Pattern Item</name>
@@ -348,7 +391,7 @@ The CBOR form of the DTN pattern is not as compressible as the IPN pattern, but 
             <name>DTN Pattern CDDL Schema</name>
             <sourcecode markers="false" type="cddl">
 $eid-pat-item /= [
-  uri-code: 1,
+  scheme-num: 1,
   SSP: dtn-ssp
 ]
 dtn-ssp = dtn-wkssp-exact / dtn-fullssp-parts
@@ -410,14 +453,6 @@ The decoder for any form of an IPN pattern <bcp14>SHOULD</bcp14> treat the failu
 A limitation of this mechanism is that there is no intermediate component pattern between a specific set of finite intervals and the match-all (unbounded) wildcard.
 There is no capability of including an non-finite bounds within any interval.
         </t>
-        <aside>
-          <t>
-EDITORIAL NOTE:
-The current definition does not include the capability to have a multi-component wildcard like the DTN pattern has "**".
-If present, this would allow patterns such as "ipn:**.4" to match any nodes with a specific service number.
-If allowed at the end-of-pattern something like "ipn:1.**" would be ambiguous about whether that single component applied to the authority number (like <tt>ipn:1.3.4</tt>) or the node number (like <tt>ipn:1.4</tt>).
-          </t>
-        </aside>
         <section>
           <name>EID Matching</name>
           <t>
@@ -468,7 +503,7 @@ ipn-pat-item = "ipn:" ipn-ssp
 ipn-ssp = 1*3( ipn-part-pat nbr-delim ) ipn-part-pat
 ipn-part-pat = ipn-number / ipn-range / wildcard
 
-ipn-number = 1*DIGIT
+ipn-number = "0" / non-zero-number
 
 ipn-range = "[" ipn-interval *( "," ipn-interval ) "]"
 ipn-interval = ipn-number [ "-" ipn-number ]
@@ -507,7 +542,7 @@ Another way to interpret these pairs is that each number indicates the length of
             <name>IPN Pattern CDDL Schema</name>
             <sourcecode markers="false" type="cddl">
 $eid-pat-item /= [
-  uri-code: 2,
+  scheme-num: 2,
   SSP: ipn-ssp
 ]
 ipn-ssp = [
@@ -533,7 +568,7 @@ This document expands upon the PKIX profile of TCPCLv4 <xref target="RFC9174"/> 
       <section>
         <name>New Other Name Form</name>
         <t>
-This document defines a PKIX Other Name Form identifier, <tt>id-on-bundleEIDPattern</tt> in <xref target="sec-asn1-mod"/>; this identifier can be used as the <tt>type-id</tt> in a Subject Alternative Name entry of type <tt>otherName</tt>.
+This document defines a PKIX Other Name Form identifier, <tt>id-on-bundleEIDPattern</tt> in <xref target="sec-asn1-mod"/>; this identifier can be used as the <tt>type-id</tt> in a Subject Alternative Name (SAN) entry of type <tt>otherName</tt>.
 The <tt>BundleEIDPattern</tt> value associated with the <tt>otherName</tt> type-id <tt>id-on-bundleEIDPattern</tt> <bcp14>SHALL</bcp14> be an EID Pattern text form, encoded as an <tt>UTF8String</tt>, with a scheme that is present in the IANA "Bundle Protocol URI Scheme Types" registry <xref target="IANA-BP"/>.
         </t>
         <aside>
@@ -550,14 +585,25 @@ This specification defines an EID-PATTERN-ID of a certificate as being the Subje
 An entity <bcp14>SHALL</bcp14> ignore any entry of type <tt>otherName</tt> with a name form of <tt>BundleEIDPattern</tt> and a value that is some text other than an EID Pattern.
         </t>
         <t>
-The EID-PATTERN-ID is similar to the NODE-ID as defined in <xref section="4.4.1" target="RFC9174"/> but can match many different and distinct Node IDs.
-URI matching of an EID-PATTERN-ID <bcp14>SHALL</bcp14> use the scheme-specific matching logic defined in this specification.
-An EID Pattern scheme can refine this matching logic with rules regarding how node IDs within that scheme are to be compared with the issued EID-PATTERN-ID.
+The EID-PATTERN-ID is similar to the NODE-ID as defined in <xref section="4.4.1" target="RFC9174"/> but can match many different and distinct Endpoint IDs.
+URI matching of an EID-PATTERN-ID <bcp14>SHALL</bcp14> use the scheme-specific EID matching logic defined in this specification.
+An EID Pattern scheme can refine this matching logic with rules regarding how Endpoint IDs within that scheme are to be compared with the issued EID-PATTERN-ID.
         </t>
         <t>
 As an augmentation of <xref section="4.4.2" target="RFC9174"/>:
 Unless prohibited by CA policy, a TCPCL end-entity certificate <bcp14>SHALL</bcp14> contain either a NODE-ID or an EID-PATTERN-ID that authenticates the node ID of the peer.
 All other requirements of that certificate profile are unchanged by this document.
+        </t>
+      </section>
+      <section>
+        <name>New Name Constraints Logic</name>
+        <t>
+This document defines a logic for matching EIDs and EID Patterns in Subject Alternative Names within subordinate certificates against EID Pattern constraints in the Name Constraints extension of <xref section="4.2.1.10" target="RFC5280"/> within CA certificates.
+        </t>
+        <t>
+When a Name Constraints extension contains an Other Name Form of <tt>id-on-bundleEIDPattern</tt>, the associated <tt>BundleEIDPattern</tt> value <bcp14>SHALL</bcp14> be used to match subordinate certificate Subject Alternative Name with Other Name forms of <tt>id-on-bundleEID</tt> or <tt>id-on-bundleEIDPattern</tt>.
+When the subordinate certificate SAN contains an Other Name Form of <tt>id-on-bundleEID</tt> the matching for a Name Constraints value of an EID Pattern <bcp14>SHALL</bcp14> use the scheme-specific EID matching logic defined in this specification.
+When the subordinate certificate SAN contains an Other Name Form of <tt>id-on-bundleEIDPattern</tt> the matching for a Name Constraints value of an EID Pattern <bcp14>SHALL</bcp14> use the scheme-specific subset logic defined in this specification.
         </t>
       </section>
     </section>
@@ -677,6 +723,7 @@ The use of this OID is defined in <xref target="sec-tcpcl-cert-profile"/>.
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.3986.xml"/>
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.4632.xml"/>
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.5234.xml"/>
+        <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.5280.xml"/>
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.6125.xml"/>
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.8174.xml"/>
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.8610.xml"/>
@@ -751,8 +798,8 @@ on-bundleEIDPattern OTHER-NAME ::= {
 
 id-on-bundleEIDPattern OBJECT IDENTIFIER ::= { id-on ON-TBD }
 
--- Same encoding as BundleEID, which allows URI reserved characters
-BundleEIDPattern ::= IA5String
+-- Encoding allows URI reserved characters
+BundleEIDPattern ::= UTF8String
 
 END
 </sourcecode>
@@ -974,13 +1021,34 @@ This trivial example matches any possible EID.
 It's text form is:
           </t>
 <sourcecode type="eidpat">
-***
+*:**
 </sourcecode>
           <t>
 and its CBOR form is:
           </t>
 <sourcecode type="cbor">
 true
+</sourcecode>
+        </section>
+        <section>
+          <name>Any-SSP Match</name>
+          <t>
+These two examples match any ipn-scheme EID, either as text scheme or integer respectively:
+          </t>
+<sourcecode type="eidpat">
+ipn:**
+</sourcecode>
+          <t>
+and
+          </t>
+<sourcecode type="eidpat">
+2:**
+</sourcecode>
+          <t>
+and both have a CBOR form of:
+          </t>
+<sourcecode type="cbor">
+[2]
 </sourcecode>
         </section>
         <section>

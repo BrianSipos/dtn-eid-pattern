@@ -12,28 +12,34 @@ LOGGER = logging.getLogger()
 
 class FromFileRule(Rule):
     pass
-    
+
 
 def main():
     parser = argparse.ArgumentParser()
+    parser.add_argument('--log-level', default='info',
+                        help='The minimum logging severity displayed.')
     parser.add_argument('schema')
     args = parser.parse_args()
-    logging.basicConfig(level='INFO')
+    logging.basicConfig(
+        level=args.log_level.upper(),
+        stream=sys.stdout
+    )
 
     LOGGER.debug('Loading schema from %s', args.schema)
     FromFileRule.from_file(args.schema)
-    
+
     anyerr = False
     for inline in sys.stdin:
         inline = inline.strip()
-        LOGGER.debug('Checking text: %s', inline)
+        LOGGER.info('Checking text: %s', inline)
         try:
             tparser = FromFileRule('eid-pattern')
-            tparser.parse_all(inline)
+            node = tparser.parse_all(inline)
+            LOGGER.debug('Parsed as: %s', node)
         except ParseError as err:
             LOGGER.error('Failed to parse "%s" with result: %s', inline, err)
             anyerr = True
-    
+
     return 2 if anyerr else 0
 
 
