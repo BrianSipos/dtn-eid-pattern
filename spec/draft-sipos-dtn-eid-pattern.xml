@@ -53,9 +53,33 @@ The certificate profile and NODE-ID definition of <xref target="RFC9174"/> uses 
 This document defines a Public Key Infrastructure Using X.509 (PKIX) Other Name Form to contain an EID Pattern and a handling rule to use a pattern to match an EID.
 This allows authenticating an individual EID based on an EID Pattern in much the same way as using a "wildcard" certificate <xref section="6.4.3" target="RFC6125"/> to match a DNS name.
       </t>
-      <t>
+      <section anchor="sec-goals">
+        <name>Goals</name>
+        <t>
+The text form of an EID Pattern defined in <xref target="sec-eid-pattern"/> is <em>not</em> a URI and is not bound by the character set restrictions imposed in <xref target="RFC3986"/>.
+This is much the same as a URI template <xref target="RFC6570"/> is also not itself a URI.
+Although some forms of EID Pattern can contain reserved URI characters, it is not guaranteed that any particular EID Pattern will be intrinsically differentiable from an EID.
+See <xref target="sec-security"/> for details on handling concerns.
+        </t>
+        <t>
+For the pattern forms defined in <xref target="sec-eid-pattern"/>, the exact-match pattern's text form is identical with its matching EID (with explicitly stated limitations).
+This behavior is not required or strictly necessary but is a convenient side effect of the text definitions and makes the EID Pattern a proper superset of EID.
+Because of its structure, used to simplify processing, the CBOR form for EID Pattern will never be identical to or a superset of EID.
+        </t>
+        <t>
 One other aspect of this patterning mechanism is that the text form of each scheme-specific pattern is intended to be, in a subjective sense, natural and understandable for the case of a human manually typing patterns into a text document or quick email message; the interpretation of the text pattern should "make sense" with minimal training.
-      </t>
+        </t>
+        <t>
+In summary, current and new scheme-specific EID Pattern definitions SHALL specify all of the following:
+        </t>
+        <ul>
+          <li>A logical information model for the scheme-specific pattern.</li>
+          <li>Any exceptions or qualifications to the goal of text-form EID being an identity EID Pattern.</li>
+          <li>Logic for matching a specific EID against the information model.</li>
+          <li>Logic for performing set operations with the information model (<em>i.e.</em>, pattern unions, intersections, and subset comparisons).</li>
+          <li>Both text-form and CBOR-form encodings for those scheme-specific information models.</li>
+        </ul>
+      </section>
       <section>
         <name>Scope</name>
         <t>
@@ -118,19 +142,9 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
     <section anchor="sec-eid-pattern">
       <name>Patterns for Endpoint IDs</name>
       <t>
-This document does not define a universal form of EID Pattern, though text forms of EID Patterns do share concepts and rules for wildcard matching.
+This document does not define a universal form of EID Pattern, though text forms of EID Patterns do share concepts and rules for wildcard matching (<em>e.g.</em>, <xref target="RFC4592"/>).
 Instead, in order to achieve efficiencies in non-text encoding, each EID scheme uses a different form of complex pattern matching.
-      </t>
-      <t>
-The text form of an EID Pattern is <em>not</em> a URI and is not bound by the character set restrictions imposed in <xref target="RFC3986"/>.
-This is much the same as a URI template <xref target="RFC6570"/> is also not itself a URI.
-Although some forms of EID Pattern can contain reserved URI characters, it is not guaranteed that any particular EID Pattern will be intrinsically differentiable from an EID.
-See <xref target="sec-security"/> for details on handling concerns.
-      </t>
-      <t>
-For the pattern forms defined in this document, the exact-match pattern's text form is identical with its matching EID.
-This behavior is not required or necessary but is a convenient side effect of the text definitions and makes the EID Pattern a proper superset of EID.
-Because of its structure, used to simplify processing, the CBOR form for EID Pattern will never be identical to or a superset of EID.
+There are also scheme-independent match-all forms that function without a processor needing scheme-specific logic for all possible schemes.
       </t>
       <section anchor="sec-pattern-top">
         <name>Pattern Set and Pattern Items</name>
@@ -378,7 +392,7 @@ $dtn-wkssp /= 0  ; For "none"
       <section anchor="sec-pattern-ipn">
         <name>IPN Scheme Pattern Item</name>
         <t>
-As defined in <xref section="4.2.5.1.2" target="RFC9171"/> and updated in <xref target="I-D.ietf-dtn-ipn-update"/>, IPN scheme EIDs have a SSP which is divided into a bounded number of integer numeric components.
+As defined in <xref section="4.2.5.1.2" target="RFC9171"/> and updated in <xref target="I-D.ietf-dtn-ipn-update"/>, IPN scheme EIDs have a SSP which is logically divided into three integer numeric components.
 Because of this, the pattern for IPN scheme EIDs is based on matching a numeric value or range for each component.
         </t>
         <t>
@@ -396,7 +410,7 @@ The conceptual model of the IPN pattern is that each of the components of the SS
           <dd>This will match any valid value, but not the absence of a value.</dd>
         </dl>
         <t>
-An IPN pattern <bcp14>SHALL</bcp14> contain between two and four components, inclusive, corresponding to the IPN scheme EID components.
+An IPN pattern <bcp14>SHALL</bcp14> contain exactly three components corresponding to the IPN scheme EID components.
         </t>
         <t>
 Within a single component of the IPN pattern, the range intervals <bcp14>SHALL</bcp14> be disjoint and non-contiguous.
@@ -404,25 +418,18 @@ Any overlapping or contiguity of intervals within a set can be coalesced into a 
 The text form of a range can, but <bcp14>SHOULD NOT</bcp14>, contain overlapping or contiguous intervals.
 The CBOR form of a range does not allow overlapping intervals because of its compressed form, but does allow contiguous intervals.
 The decoder for any form of an IPN pattern <bcp14>SHALL</bcp14> normalize all intervals sets to satisfy information model requirements.
-The decoder for any form of an IPN pattern <bcp14>SHOULD</bcp14> treat the failure of any piece parts of a pattern as a failure to decode the whole pattern.
+The decoder for any form of an IPN pattern <bcp14>SHOULD</bcp14> treat the failure of any component of a pattern as a failure to decode the whole pattern.
         </t>
         <t>
 A limitation of this mechanism is that there is no intermediate component pattern between a specific set of finite intervals and the match-all (unbounded) wildcard.
 There is no capability of including an non-finite bounds within any interval.
+But the components of the IPN scheme itself have finite bounds so a range can be made to capture component values up to and including the EID component bound.
         </t>
-        <aside>
-          <t>
-EDITORIAL NOTE:
-The current definition does not include the capability to have a multi-component wildcard like the DTN pattern has "**".
-If present, this would allow patterns such as "ipn:**.4" to match any nodes with a specific service number.
-If allowed at the end-of-pattern something like "ipn:1.**" would be ambiguous about whether that single component applied to the authority number (like <tt>ipn:1.3.4</tt>) or the node number (like <tt>ipn:1.4</tt>).
-          </t>
-        </aside>
         <section>
           <name>EID Matching</name>
           <t>
-An IPN pattern <bcp14>SHALL</bcp14> be considered to match a specific EID when both have the same scheme, the pattern has the same number of components as the EID, and each component of the the pattern matches the corresponding component of the EID SSP.
-If the number of components differ or if any component doesn't match, the whole pattern does not match.
+An IPN pattern <bcp14>SHALL</bcp14> be considered to match a specific EID when both have the same scheme and each component of the the pattern matches the corresponding logical component of the EID SSP.
+If any component doesn't match, the whole pattern does not match.
 Each pattern component <bcp14>SHALL</bcp14> be considered to match according to the following rules:
           </t>
           <dl>
@@ -431,7 +438,7 @@ Each pattern component <bcp14>SHALL</bcp14> be considered to match according to 
             <dt>Range:</dt>
             <dd>The pattern component <bcp14>SHALL</bcp14> be considered to match with any EID component value that is contained in any of the finite intervals of the range.</dd>
             <dt>Wildcard:</dt>
-            <dd>The pattern component <bcp14>SHALL</bcp14> be considered to match with any EID component, if present.</dd>
+            <dd>The pattern component <bcp14>SHALL</bcp14> be considered to match with any EID component.</dd>
           </dl>
           <t>
 Because these are dealing with numeric values in an information model, the matching occurs after any encoding-specific normalization (<em>i.e.</em> it's not a text pattern for the text encoding, the matching is performed within the information model of the SSP).
@@ -464,11 +471,13 @@ The canonical text form of an IPN pattern <bcp14>SHALL</bcp14> order all range s
             <name>IPN Pattern ABNF Schema</name>
             <sourcecode markers="false" type="abnf">
 ipn-pat-item = "ipn:" ipn-ssp
-; Up to three preceding components with a service number
-ipn-ssp = 1*3( ipn-part-pat nbr-delim ) ipn-part-pat
+; Three logical components
+ipn-ssp = ipn-part-pat nbr-delim ipn-part-pat nbr-delim ipn-part-pat
 ipn-part-pat = ipn-number / ipn-range / wildcard
 
-ipn-number = 1*DIGIT
+; Same normalized form as IPN scheme itself
+ipn-number = "0" / non-zero-number
+non-zero-number = (%x31-39 *DIGIT)
 
 ipn-range = "[" ipn-interval *( "," ipn-interval ) "]"
 ipn-interval = ipn-number [ "-" ipn-number ]
@@ -511,10 +520,10 @@ $eid-pat-item /= [
   SSP: ipn-ssp
 ]
 ipn-ssp = [
-  2*4 ipn-part-pat,
+  3*3 ipn-part-pat,
 ]
-
 ipn-part-pat = uint / ipn-range / true
+
 ipn-range = [ 1* ipn-interval-pair ]
 ipn-interval-pair = (
   offset: uint,
@@ -587,6 +596,9 @@ Additionally, for the IPN scheme there are numeric values that must be handled a
         <t>
 This specification re-uses the "Bundle Protocol URI Scheme Types" sub-registry within the "Bundle Protocol" registry <xref target="IANA-BP"/> for the CBOR encoding of EID Patterns and adds an informative column "EID Pattern Reference" as in the following table.
         </t>
+        <t>
+Specifications of new EID Pattern schemes SHALL define all of the required items from <xref target="sec-goals"/> to ensure that pattern behavior is consistent across different schemes.
+        </t>
         <table align="center">
           <thead>
             <tr>
@@ -601,13 +613,13 @@ This specification re-uses the "Bundle Protocol URI Scheme Types" sub-registry w
               <td>1</td>
               <td>dtn</td>
               <td/>
-              <td>[This specification]</td>
+              <td><xref target="sec-pattern-dtn"/> of [This specification]</td>
             </tr>
             <tr>
               <td>2</td>
               <td>ipn</td>
               <td/>
-              <td>[This specification]</td>
+              <td><xref target="sec-pattern-ipn"/> of [This specification]</td>
             </tr>
           </tbody>
         </table>
@@ -696,6 +708,7 @@ The use of this OID is defined in <xref target="sec-tcpcl-cert-profile"/>.
       </references>
       <references>
         <name>Informative References</name>
+        <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.4592.xml"/>
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.5050.xml"/>
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.5912.xml"/>
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.6570.xml"/>
@@ -884,7 +897,7 @@ which has a CBOR form of:
 </sourcecode>
         </section>
         <section>
-          <name>Single Wildcard Match</name>
+          <name>Wildcards</name>
            <t>
 This example matches all service numbers on a single node
           </t>
@@ -898,16 +911,16 @@ which has a CBOR form of:
 [[2, [0, 3, true]]]
 </sourcecode>
           <t>
-This example matches all no-authority nodes with the same service number
+This example matches all default-authority nodes with the same service number
           </t>
 <sourcecode type="eidpat">
-ipn:*.4
+ipn:0.*.4
 </sourcecode>
           <t>
 which has a CBOR form of:
           </t>
 <sourcecode type="cbor">
-[[2, [true, 4]]]
+[[2, [0, true, 4]]]
 </sourcecode>
         </section>
         <section>
