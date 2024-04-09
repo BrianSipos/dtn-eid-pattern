@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?rfc toc="yes"?>
-<rfc xmlns:xi="http://www.w3.org/2001/XInclude" category="info" consensus="true" docName="draft-sipos-dtn-eid-pattern-01" ipr="trust200902" submissionType="IETF" tocInclude="true" version="3">
+<rfc xmlns:xi="http://www.w3.org/2001/XInclude" category="info" consensus="true" docName="draft-sipos-dtn-eid-pattern-02" ipr="trust200902" submissionType="IETF" tocInclude="true" version="3">
   <front>
     <title abbrev="BP EID-Pattern">
 Bundle Protocol Endpoint ID Patterns
     </title>
-    <seriesInfo name="Internet-Draft" value="draft-sipos-dtn-eid-pattern-01"/>
+    <seriesInfo name="Internet-Draft" value="draft-sipos-dtn-eid-pattern-02"/>
     <author fullname="Brian Sipos" initials="B." surname="Sipos">
       <organization abbrev="JHU/APL">The Johns Hopkins University Applied Physics Laboratory</organization>
       <address>
