@@ -1,0 +1,288 @@
+<?xml version="1.0" encoding="UTF-8"?>
+      <section anchor="sec-pattern-dtn">
+        <name>DTN Scheme Pattern Item</name>
+        <t>
+As defined in <xref section="4.2.5.1.1" target="RFC9171"/>, DTN scheme EIDs have an authority (node name) part and a sequence of path (service demux) segment components.
+Combining these components together, the whole EID SSP is treated as a sequence of these unstructured text components.
+Because of the lack of more specific structure, outside of match-all wildcards only a generic pattern matching mechanism like a regular expression can be used.
+        </t>
+        <t>
+For the remainder of this document, the term "DTN pattern" is used as shorthand to mean the EID pattern item used for the "dtn" scheme.
+        </t>
+        <t>
+The conceptual model of the DTN pattern is that the node name and the sequence of path segments can be matched as one of:
+        </t>
+        <dl>
+          <dt>Specific value:</dt>
+          <dd>This will match only a single value (as decoded text).</dd>
+          <dt>Regular expression:</dt>
+          <dd>This will match a decoded text value based on a (possibly anchored) regular expression.</dd>
+          <dt>Single-segment wildcard:</dt>
+          <dd>This will match an individual path segment.</dd>
+          <dt>Multi-segment wildcard:</dt>
+          <dd>For the node name this will match any valid value. For the path segment this will match any number of segments of any value.</dd>
+        </dl>
+        <t>
+A DTN pattern <bcp14>SHALL</bcp14> contain at least two components: the first for the node name and the others for the service demux.
+A DTN pattern <bcp14>SHALL</bcp14> contain no more than one multi-segment wildcard component.
+If present, a DTN pattern <bcp14>SHALL</bcp14> only contain a multi-segment wildcard in its last (demux path segment) component.
+        </t>
+        <aside>
+          <t>
+The reason for using a multi-segment wildcard in the node name part is to allow for a future enhancement of this pattern method to handle components within the node name (similar to the sequence of labels within a DNS name).
+For now the multi-segment wildcard within a node name behaves equivalently to a single-segment wildcard because the node name is not decomposed into internal components.
+          </t>
+        </aside>
+        <section>
+          <name>EID Matching</name>
+          <t>
+When matching a DTN pattern any query or fragment parts of an EID <bcp14>SHALL</bcp14> be ignored and not treated as comparison components.
+A DTN pattern <bcp14>SHALL</bcp14> be considered to match a specific EID when both have the same scheme, the pattern has the same number of components as the EID, and each component of the the pattern matches the corresponding component of the EID SSP.
+If the number of components differ or if any component doesn't match, the whole pattern does not match.
+Each pattern component <bcp14>SHALL</bcp14> be considered to match according to the following rules:
+          </t>
+          <dl>
+            <dt>Specific value:</dt>
+            <dd>
+The pattern component <bcp14>SHALL</bcp14> be compared with the EID component after both are percent-decoded in accordance with <xref section="2.1" target="RFC3986"/> and UTF-8 decoded in accordance with <xref target="RFC3629"/>.
+            </dd>
+            <dt>Regular expression:</dt>
+            <dd>
+              The pattern component <bcp14>SHALL</bcp14> be percent-decoded and UTF-8 decoded then interpreted as a regular expressing in accordance with <xref target="ECMA262"/>.
+              The EID component <bcp14>SHALL</bcp14> be percent-decoded and UTF-8 decoded.
+              The regular expression <bcp14>SHALL</bcp14> then be compared with the decoded EID component.
+            </dd>
+            <dt>Single-segment wildcard:</dt>
+            <dd>The pattern component <bcp14>SHALL</bcp14> be considered to match with any EID component, if present, including an empty component.</dd>
+            <dt>Multi-segment wildcard:</dt>
+            <dd>The pattern component <bcp14>SHALL</bcp14> be considered to match with any number of EID components, including zero EID components.</dd>
+          </dl>
+          <t>
+Because these are dealing with text values in an information model, the matching occurs in the percent-encoding normalized or percent-decoded domain (<em>i.e.</em> it's not a pattern for the encoded URI, the matching is performed within the information model of the SSP).
+          </t>
+        </section>
+        <section>
+          <name>Pattern Set Logic</name>
+          <t>
+Because of the arbitrarily complex nesting rules allowed by regular expressions, and the multiple techniques available for different expressions to match the same subsets of text, DTN pattern sets can only be consistently computed when the node-name or demux path segments are either exact-text matches or one of the match-all wildcards.
+          </t>
+          <t>
+Users of the DTN pattern <bcp14>SHALL</bcp14> have a mechanism to perform set logic with specific value and wildcard components.
+EID Pattern processors <bcp14>MAY</bcp14>, but cannot be assumed to, have a mechanism to perform set logic on regular expression components.
+          </t>
+        </section>
+        <section>
+          <name>Text Form</name>
+          <t>
+The text form of the DTN pattern conforms to the ABNF in <xref target="fig-pattern-dtn-text"/>.
+The authority begins with the same string "//" and authority and demux components are separated by the same character "/" as in the DTN URI scheme.
+          </t>
+          <t>
+This pattern uses reserved URI characters of "[" and "]" (see <xref section="2.2" target="RFC3986"/>) to indicate the presence of a regular expression for a component.
+This allows completely disambiguating a DTN pattern from a specific DTN EID when a regular expression or wildcard is present.
+Because neither of those are required to be present in a DTN pattern and the asterisk "*" is a valid path segment character, the considerations of <xref target="sec-security"/> still always apply to decoding text as EID Pattern versus an EID.
+          </t>
+          <figure anchor="fig-pattern-dtn-text">
+            <name>DTN Pattern ABNF Schema</name>
+            <sourcecode markers="false" type="abnf">
+dtn-pat-item = "dtn:" dtn-ssp
+dtn-ssp = dtn-wkssp-exact / dtn-fullssp
+
+; A node-name authority with some number of demux path segments
+dtn-fullssp = "//" dtn-authority-pat "/" dtn-path-pat
+dtn-authority-pat = exact / regexp / multi-wildcard
+; Only the last path segment is allowed a multi-wildcard
+dtn-path-pat = *( dtn-single-pat "/" ) dtn-last-pat
+dtn-single-pat = exact / regexp / wildcard
+dtn-last-pat = dtn-single-pat / multi-wildcard
+
+; Exact-match text, which excludes gen-delims characters
+exact = *pchar
+; Regular expression for the whole SSP within the gen-delims brackets
+; with an allowance for more regexp characters
+regexp = "[" *( pchar / "^" ) "]"
+
+; Exact match for well-known SSP
+dtn-wkssp-exact = "none"
+</sourcecode>
+          </figure>
+          <t>
+A concrete use of this text form is illustrated in this example:
+          </t>
+          <sourcecode>
+dtn://node-name/[%5Eanchored]/other%20part/**
+      &lt;-- P --&gt;  &lt;--- P ---&gt;  &lt;--- P ----&gt;
+</sourcecode>
+          <t>
+Where the "P" sections are percent-encoded (with no reserved characters) and square brackets unambiguously delimit the expression component.
+The actual components in this example are the specific value "node", the regular expression "^anchored", and the specific value "other part" and all are UTF-8 and percent-encoded.
+Further examples are given in <xref target="sec-ex-pattern-dtn"/>.
+          </t>
+          <aside>
+            <t>
+Because all of "." "*" "+" and "$" are within the <tt>pchar</tt> rule, and "^" is added by the <tt>regexp</tt> rule, it is possible for a less strict encoder (<em>e.g.</em> a human writing patterns) to create one similar to <tt>dtn://node/[^some.*thing$]</tt> and have it still be handled correctly.
+            </t>
+          </aside>
+        </section>
+        <section>
+          <name>CBOR Form</name>
+          <t>
+The CBOR form of the DTN pattern conforms to the CDDL in <xref target="fig-pattern-dtn-cbor"/>.
+Just as in the DTN URI scheme the pattern scheme identifier is 1, the first component of the SSP identifies the node and the last components identify the service path segments.
+The well-known SSP <bcp14>SHALL</bcp14> be encoded using the same <tt>uint</tt> value specified for the DTN URI scheme.
+          </t>
+          <t>
+Each of the DTN pattern components <bcp14>SHALL</bcp14> be CBOR encoded as follows:
+          </t>
+          <dl>
+            <dt>Specific value:</dt>
+            <dd>A text item (not otherwise UTF-8 or percent-encoded) corresponding to the <tt>dtn-exact</tt> rule.</dd>
+            <dt>Regular expression:</dt>
+            <dd>A tagged regular expression item corresponding to the <tt>regexp</tt> rule.</dd>
+            <dt>Single-segment wildcard:</dt>
+            <dd>The <tt>true</tt> item.</dd>
+            <dt>Multi-segment wildcard:</dt>
+            <dd>The <tt>false</tt> item.</dd>
+          </dl>
+          <t>
+The wildcard sentinel values have no intrinsic meaning and were simply chosen to be one-octet-encoded special items.
+The CBOR form of the DTN pattern is not as compressible as the IPN pattern, but the exact text is not percent encoded and the regular expression tag "regexp" does save one octet per instance.
+          </t>
+          <figure anchor="fig-pattern-dtn-cbor">
+            <name>DTN Pattern CDDL Schema</name>
+            <sourcecode markers="false" type="cddl">
+$eid-pat-item /= [
+  scheme-num: 1,
+  SSP: dtn-ssp
+]
+dtn-ssp = dtn-wkssp-exact / dtn-fullssp-parts
+dtn-fullssp-parts = [
+  dtn-authority-pat,
+  dtn-path-pat,
+]
+dtn-authority-pat = dtn-exact / regexp / multi-wildcard
+; Only the last path segment is allowed a multi-wildcard
+dtn-path-pat = (
+  * dtn-single-pat,
+  ? multi-wildcard
+)
+dtn-single-pat = dtn-exact / regexp / wildcard
+
+dtn-exact = tstr
+wildcard = true
+multi-wildcard = false
+
+; Exact match for well-known SSP
+dtn-wkssp-exact = $dtn-wkssp .within uint
+$dtn-wkssp /= 0  ; For "none"
+</sourcecode>
+          </figure>
+        </section>
+      </section>
+    <section>
+      <name>Examples</name>
+      <section anchor="sec-ex-pattern-dtn">
+        <name>DTN Patterns</name>
+        <t>
+This section contains examples specific to the DTN pattern of <xref target="sec-pattern-dtn"/>.
+        </t>
+        <section>
+          <name>Exact Match</name>
+          <t>
+This trivial example matches only one EID (which itself has the same text form)
+          </t>
+<sourcecode type="eidpat">
+dtn://node/service
+</sourcecode>
+          <t>
+which has a CBOR form of:
+            </t>
+<sourcecode type="cbor">
+[[1, ["node", "service"]]]
+</sourcecode>
+          <t>
+An example of normalized matching is that the pattern
+          </t>
+<sourcecode type="eidpat">
+dtn://node/service
+</sourcecode>
+          <t>
+will still match the EIDs <tt>dtn://node/ser%76ice</tt> and <tt>dtn://no%64e/service</tt> because each component match is performed in percent-decoded and UTF-8 decoded form.
+          </t>
+        </section>
+        <section>
+          <name>Wildcards</name>
+          <t>
+This example matches a single-segment service demux on a single node
+          </t>
+<sourcecode type="eidpat">
+dtn://node/*
+</sourcecode>
+          <t>
+which has a CBOR form of:
+          </t>
+<sourcecode type="cbor">
+[[1, ["node", true]]]
+</sourcecode>
+          <t>
+That single wildcard will match the empty demux <tt>dtn://node/</tt> but will not match demux paths such as <tt>dtn://node/long/name</tt> or any more segments.
+          </t>
+          <aside><t>
+EDITORIAL NOTE:
+Do we want the wildcard to actually match the empty segment?
+Or would it be better to handle that separately so that the above pattern does not match the empty demux?
+          </t></aside>
+          <t>
+This example matches all service demux on a single node with a multi-wildcard
+          </t>
+<sourcecode type="eidpat">
+dtn://node/**
+</sourcecode>
+          <t>
+which has a CBOR form of:
+          </t>
+<sourcecode type="cbor">
+[[1, ["node", false]]]
+</sourcecode>
+          <t>
+This example matches a service demux with a prefix segment "pre"
+          </t>
+<sourcecode type="eidpat">
+dtn://node/pre/**
+</sourcecode>
+          <t>
+which has a CBOR form of:
+          </t>
+<sourcecode type="cbor">
+[[1, ["node", "pre", false]]]
+</sourcecode>
+          <t>
+This example matches all node names having the same service demux
+          </t>
+<sourcecode type="eidpat">
+dtn://**/some/serv
+</sourcecode>
+          <t>
+which has a CBOR form of:
+          </t>
+<sourcecode type="cbor">
+[[1, [false, "some", "serv"]]]
+</sourcecode>
+        </section>
+        <section>
+          <name>Regular Expression Match</name>
+          <t>
+This example includes a single regular expression for single-segment service that starts with the letter "a" in the text form of
+          </t>
+<sourcecode type="eidpat">
+dtn://**/[^a]
+</sourcecode>
+          <t>
+which has a CBOR form of:
+          </t>
+<sourcecode type="cbor">
+[[1, [false, 35("^a")]]]
+</sourcecode>
+        </section>
+      </section>
+      
