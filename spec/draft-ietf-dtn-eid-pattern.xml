@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?rfc toc="yes"?>
-<rfc xmlns:xi="http://www.w3.org/2001/XInclude" category="info" consensus="true" docName="draft-sipos-dtn-eid-pattern-03" ipr="trust200902" submissionType="IETF" tocInclude="true" version="3">
+<rfc xmlns:xi="http://www.w3.org/2001/XInclude" category="info" consensus="true" docName="draft-ietf-dtn-eid-pattern-00" ipr="trust200902" submissionType="IETF" tocInclude="true" version="3">
   <front>
     <title abbrev="BP EID-Pattern">
 Bundle Protocol Endpoint ID Patterns
     </title>
-    <seriesInfo name="Internet-Draft" value="draft-sipos-dtn-eid-pattern-03"/>
+    <seriesInfo name="Internet-Draft" value="draft-ietf-dtn-eid-pattern-00"/>
     <author fullname="Brian Sipos" initials="B." surname="Sipos">
       <organization abbrev="JHU/APL">The Johns Hopkins University Applied Physics Laboratory</organization>
       <address>
@@ -83,11 +83,14 @@ In summary, current and new scheme-specific EID Pattern definitions SHALL specif
       <section>
         <name>Scope</name>
         <t>
-This document defines a logical model of pattern matching BP Endpoint IDs and both text and CBOR encoding forms, as well as PKIX extensions to make use of EID Patterns.
+This document defines a logical model of pattern matching BP Endpoint IDs and both text and CBOR encoding forms, as well as PKIX extensions to make use of EID Patterns in a public key certificate (PKC).
         </t>
         <t>
 This document does not define a method of disambiguating an EID from an EID Pattern (in either encoded form) without any other context.
 Given a pure text or CBOR encoding of an arbitrary value, there must be some external context to determine how to interpret it.
+        </t>
+        <t>
+This document defines scheme-specific pattern for the "ipn" URI scheme, as its semantics are well-established, while the other currently registered "dtn" scheme lacks well-defined semantics for the structure of its authority component (which would be necessary for wildcard logic).
         </t>
         <t>
 Although the same EID definitions apply to BP Version 6 <xref target="RFC5050"/> this document does not provide any mechanisms of integrating with that protocol.
@@ -226,7 +229,7 @@ When an any-SSP item is present in an EID pattern, it <bcp14>SHALL</bcp14> be th
 Any other, scheme-specific items would be redundant and unnecessary when combined with the any-SSP item for that same scheme.
         </t>
         <t>
-The text form of the any-SSP pattern is the following ABNF, where the scheme part can either be a proper URI <tt>scheme</tt> or a postive integer value (valid values are restricted by the scheme registry <xref target="IANA-BP"/>).
+The text form of the any-SSP pattern is the following ABNF, where the scheme part can either be a proper URI <tt>scheme</tt> or a positive integer value (valid values are restricted by the scheme registry <xref target="IANA-BP"/>).
         </t>
         <sourcecode type="abnf">
 any-ssp-item = (scheme / non-zero-decimal) ":" multi-wildcard
@@ -243,7 +246,7 @@ any-ssp-item = (uint .gt 0) / tstr
           <t>
 An any-SSP pattern <bcp14>SHALL</bcp14> be considered to match a specific EID when both have the same normalized scheme.
 For schemes which are known to the processing entity, the integer form <bcp14>SHALL</bcp14> be the normalized form.
-For schemes which are unkown to the processing entity, the text form of the any-SSP pattern scheme <bcp14>SHALL</bcp14> be used to match text-form EIDs and the integer form of the pattern scheme <bcp14>SHALL</bcp14> be used to match CBOR-form EIDs.
+For schemes which are unknown to the processing entity, the text form of the any-SSP pattern scheme <bcp14>SHALL</bcp14> be used to match text-form EIDs and the integer form of the pattern scheme <bcp14>SHALL</bcp14> be used to match CBOR-form EIDs.
           </t>
           <t>
 This means that for entities that cannot process a specific (fictional) private-use scheme with value 65536 and name "example", the following pattern will guarantee proper handling by any entity:

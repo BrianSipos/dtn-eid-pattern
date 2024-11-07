@@ -7,12 +7,17 @@ A difference from the datatracker draft and this local version can be [viewed si
 
 Prerequisites to building can be installed on Ubuntu with:
 ```
-sudo apt-get install -y install aspell cmake python3 python3-pip python3-setuptools python3-wheel ruby xmlstarlet
-sudo pip3 install xml2rfc abnf
-sudo gem install cddl
+sudo apt-get install -y cmake python3 python3-pip python3-setuptools python3-wheel ruby xmlstarlet aspell
+pip3 install xml2rfc abnf
+crate install cddl
 ```
+and update the user's path similar to
+```
+export PATH="${PATH}:$HOME/.cargo/bin
+```
+
 and then the document can be built with
 ```
-cmake -S . -B build
-cmake --build build
+cmake -S . -B build/default
+cmake --build build/default
 ```
