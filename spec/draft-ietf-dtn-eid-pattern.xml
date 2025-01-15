@@ -67,14 +67,14 @@ This behavior is not required or strictly necessary but is a convenient side eff
 Because of its structure, used to simplify processing, the CBOR form for EID Pattern will never be identical to or a superset of EID.
         </t>
         <t>
-One other aspect of this patterning mechanism is that the text form of each scheme-specific pattern is intended to be, in a subjective sense, natural and understandable for the case of a human manually typing patterns into a text document or quick email message; the interpretation of the text pattern should "make sense" with minimal training.
+One other aspect of this patterning mechanism is that the text form of each scheme-specific pattern is intended to be, in a subjective sense, natural and understandable for the case of a human manually typing patterns into a text document or quick email message; the interpretation of the text pattern needs to "make sense" with minimal training.
         </t>
         <t>
-In summary, current and new scheme-specific EID Pattern definitions SHALL specify all of the following:
+In summary, current and new scheme-specific EID Pattern definitions<bcp14>SHALL</bcp14> specify all of the following:
         </t>
         <ul>
           <li>A logical information model for the scheme-specific pattern.</li>
-          <li>Any exceptions or qualifications to the goal of text-form EID being an identity EID Pattern.</li>
+          <li>Any exceptions or qualifications to the goal of text-form EID being an identity EID Pattern (<em>i.e.</em>, a text EID will act as a pattern unmodified, and that pattern will match only the original EID).</li>
           <li>Logic for matching a specific EID against the information model.</li>
           <li>Logic for performing set operations with the information model (<em>i.e.</em>, pattern unions, intersections, and subset comparisons).</li>
           <li>Both text-form and CBOR-form encodings for those scheme-specific information models.</li>
@@ -87,7 +87,7 @@ This document defines a logical model of pattern matching BP Endpoint IDs and bo
         </t>
         <t>
 This document does not define a method of disambiguating an EID from an EID Pattern (in either encoded form) without any other context.
-Given a pure text or CBOR encoding of an arbitrary value, there must be some external context to determine how to interpret it.
+Given a pure text or CBOR encoding of an arbitrary value, there needs to be some external context to determine how to interpret it.
         </t>
         <t>
 This document defines scheme-specific pattern for the "ipn" URI scheme, as its semantics are well-established, while the other currently registered "dtn" scheme lacks well-defined semantics for the structure of its authority component (which would be necessary for wildcard logic).
@@ -140,12 +140,15 @@ From the document <xref target="RFC9171"/> the definition is taken for <tt>eid-s
       <section anchor="sec-terminology">
         <name>Terminology</name>
         <t>
-The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in BCP 14 <xref target="RFC2119"/> <xref target="RFC8174"/> when, and only when, they appear in all capitals, as shown here.
+The key words "<bcp14>MUST</bcp14>", "<bcp14>MUST NOT</bcp14>", "<bcp14>REQUIRED</bcp14>", "<bcp14>SHALL</bcp14>", "<bcp14>SHALL NOT</bcp14>", "<bcp14>SHOULD</bcp14>", "<bcp14>SHOULD NOT</bcp14>", "<bcp14>RECOMMENDED</bcp14>", "<bcp14>NOT RECOMMENDED</bcp14>", "<bcp14>MAY</bcp14>", and "<bcp14>OPTIONAL</bcp14>" in this document are to be interpreted as described in BCP 14 <xref target="RFC2119"/> <xref target="RFC8174"/> when, and only when, they appear in all capitals, as shown here.
+        </t>
+        <t>
+The terms "Endpoint" and "Endpoint ID" in this document refer to the meanings defined in <xref section="3.1" target="RFC9171"/>.
         </t>
       </section>
     </section>
     <section anchor="sec-eid-pattern">
-      <name>Patterns for Endpoint IDs</name>
+      <name>Patterns for BP Endpoint IDs</name>
       <t>
 This document does not define a universal form of EID Pattern, though text forms of EID Patterns do share concepts and rules for wildcard matching (<em>e.g.</em>, <xref target="RFC4592"/>).
 Instead, in order to achieve efficiencies in non-text encoding, each EID scheme uses a different form of complex pattern matching.
@@ -373,7 +376,7 @@ The encoding of ranges is a compressed form in which each pair of values in the 
           </t>
           <ol>
             <li>The non-zero offset from the previous one-past-end-of-range, or the offset from zero if there is no preceding range</li>
-            <li>The length of this range, which is inclusive of the first and last contained value so should always be non-zero</li>
+            <li>The length of this range, which is inclusive of the first and last contained value so will always be non-zero</li>
           </ol>
           <t>
 Another way to interpret these pairs is that each number indicates the length of alternating "excluded" and "included" intervals for the range.
@@ -465,7 +468,7 @@ For PKIX Subject Alternative Name this is distinguished by the different Other N
 An EID which is inappropriately interpreted as an EID Pattern could allow an attacker to elevate access depending upon other aspects of the system being accessed.
       </t>
       <t>
-CAs which issue certificates containing EID Patterns need to consider the implications of an overly-broad pattern in the same way that current Web PKI CAs must manage certificates with wildcard DNS-IDs.
+CAs which issue certificates containing EID Patterns need to consider the implications of an overly-broad pattern in the same way that current Web PKI CAs manage certificates with wildcard DNS-IDs.
       </t>
       <t>
 Although the reserved characters "[" and "]" are disallowed within the URI authority and path segments by <xref target="RFC3986"/> there are still URI processors which could be lax about enforcing that restriction and could allow an EID pattern to be decoded in a place where an actual EID is expected.
@@ -473,7 +476,7 @@ This could allow unwanted side-effects when the EID is handled by a BP Agent.
       </t>
       <t>
 Both URI authority and path segments are percent-encoded text and need to be handled by EID processors as such for both pattern matching and equality comparison.
-Additionally, for the IPN scheme there are numeric values that must be handled as such for pattern matching and comparison.
+Additionally, for the IPN scheme there are numeric values that need to be handled as such for pattern matching and comparison.
       </t>
     </section>
     <section anchor="sec-iana">
@@ -484,7 +487,7 @@ Additionally, for the IPN scheme there are numeric values that must be handled a
 This specification re-uses the "Bundle Protocol URI Scheme Types" registry within the "Bundle Protocol" registry <xref target="IANA-BP"/> for the CBOR encoding of EID Patterns and adds an informative column "EID Pattern Reference" as in the following table.
         </t>
         <t>
-Specifications of new EID Pattern schemes SHALL define all of the required items from <xref target="sec-goals"/> to ensure that pattern behavior is consistent across different schemes.
+Specifications of new EID Pattern schemes <bcp14>SHALL</bcp14> define all of the required items from <xref target="sec-goals"/> to ensure that pattern behavior is consistent across different schemes.
         </t>
         <table align="center">
           <thead>
