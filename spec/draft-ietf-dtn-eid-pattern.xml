@@ -1,11 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?rfc toc="yes"?>
-<rfc xmlns:xi="http://www.w3.org/2001/XInclude" category="info" consensus="true" docName="draft-ietf-dtn-eid-pattern-00" ipr="trust200902" submissionType="IETF" tocInclude="true" version="3">
+<!DOCTYPE rfc [
+ <!ENTITY nbsp    "&#160;">
+ <!ENTITY zwsp   "&#8203;">
+ <!ENTITY nbhy   "&#8209;">
+ <!ENTITY wj     "&#8288;">
+]>
+<rfc xmlns:xi="http://www.w3.org/2001/XInclude" category="info" consensus="true" docName="draft-ietf-dtn-eid-pattern-01" ipr="trust200902" submissionType="IETF" tocInclude="true" version="3">
   <front>
     <title abbrev="BP EID-Pattern">
 Bundle Protocol Endpoint ID Patterns
     </title>
-    <seriesInfo name="Internet-Draft" value="draft-ietf-dtn-eid-pattern-00"/>
+    <seriesInfo name="Internet-Draft" value="draft-ietf-dtn-eid-pattern-01"/>
     <author fullname="Brian Sipos" initials="B." surname="Sipos">
       <organization abbrev="JHU/APL">The Johns Hopkins University Applied Physics Laboratory</organization>
       <address>
@@ -67,14 +73,14 @@ This behavior is not required or strictly necessary but is a convenient side eff
 Because of its structure, used to simplify processing, the CBOR form for EID Pattern will never be identical to or a superset of EID.
         </t>
         <t>
-One other aspect of this patterning mechanism is that the text form of each scheme-specific pattern is intended to be, in a subjective sense, natural and understandable for the case of a human manually typing patterns into a text document or quick email message; the interpretation of the text pattern should "make sense" with minimal training.
+One other aspect of this patterning mechanism is that the text form of each scheme-specific pattern is intended to be, in a subjective sense, natural and understandable for the case of a human manually typing patterns into a text document or quick email message; the interpretation of the text pattern needs to "make sense" with minimal training.
         </t>
         <t>
-In summary, current and new scheme-specific EID Pattern definitions SHALL specify all of the following:
+In summary, current and new scheme-specific EID Pattern definitions<bcp14>SHALL</bcp14> specify all of the following:
         </t>
         <ul>
           <li>A logical information model for the scheme-specific pattern.</li>
-          <li>Any exceptions or qualifications to the goal of text-form EID being an identity EID Pattern.</li>
+          <li>Any exceptions or qualifications to the goal of text-form EID being an identity EID Pattern (<em>i.e.</em>, a text EID will act as a pattern unmodified, and that pattern will match only the original EID).</li>
           <li>Logic for matching a specific EID against the information model.</li>
           <li>Logic for performing set operations with the information model (<em>i.e.</em>, pattern unions, intersections, and subset comparisons).</li>
           <li>Both text-form and CBOR-form encodings for those scheme-specific information models.</li>
@@ -87,7 +93,7 @@ This document defines a logical model of pattern matching BP Endpoint IDs and bo
         </t>
         <t>
 This document does not define a method of disambiguating an EID from an EID Pattern (in either encoded form) without any other context.
-Given a pure text or CBOR encoding of an arbitrary value, there must be some external context to determine how to interpret it.
+Given a pure text or CBOR encoding of an arbitrary value, there needs to be some external context to determine how to interpret it.
         </t>
         <t>
 This document defines scheme-specific pattern for the "ipn" URI scheme, as its semantics are well-established, while the other currently registered "dtn" scheme lacks well-defined semantics for the structure of its authority component (which would be necessary for wildcard logic).
@@ -131,7 +137,7 @@ The entire CDDL structure can be extracted from the XML version of this document
 The following initial fragment defines the top-level rules of this document's CDDL, which includes the example CBOR content.
         </t>
         <sourcecode type="cddl">
-start = eid-pattern
+start = eid-pattern / embed-eid-pattern
         </sourcecode>
         <t>
 From the document <xref target="RFC9171"/> the definition is taken for <tt>eid-structure</tt>.
@@ -140,12 +146,15 @@ From the document <xref target="RFC9171"/> the definition is taken for <tt>eid-s
       <section anchor="sec-terminology">
         <name>Terminology</name>
         <t>
-The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in BCP 14 <xref target="RFC2119"/> <xref target="RFC8174"/> when, and only when, they appear in all capitals, as shown here.
+The key words "<bcp14>MUST</bcp14>", "<bcp14>MUST NOT</bcp14>", "<bcp14>REQUIRED</bcp14>", "<bcp14>SHALL</bcp14>", "<bcp14>SHALL NOT</bcp14>", "<bcp14>SHOULD</bcp14>", "<bcp14>SHOULD NOT</bcp14>", "<bcp14>RECOMMENDED</bcp14>", "<bcp14>NOT RECOMMENDED</bcp14>", "<bcp14>MAY</bcp14>", and "<bcp14>OPTIONAL</bcp14>" in this document are to be interpreted as described in BCP 14 <xref target="RFC2119"/> <xref target="RFC8174"/> when, and only when, they appear in all capitals, as shown here.
+        </t>
+        <t>
+The terms "Endpoint" and "Endpoint ID" in this document refer to the meanings defined in <xref section="3.1" target="RFC9171"/>.
         </t>
       </section>
     </section>
     <section anchor="sec-eid-pattern">
-      <name>Patterns for Endpoint IDs</name>
+      <name>Patterns for BP Endpoint IDs</name>
       <t>
 This document does not define a universal form of EID Pattern, though text forms of EID Patterns do share concepts and rules for wildcard matching (<em>e.g.</em>, <xref target="RFC4592"/>).
 Instead, in order to achieve efficiencies in non-text encoding, each EID scheme uses a different form of complex pattern matching.
@@ -266,6 +275,14 @@ Because of this, the pattern for IPN scheme EIDs is based on matching a numeric 
 For the remainder of this document, the term "IPN pattern" is used as shorthand to mean the EID pattern item used for the "ipn" scheme.
         </t>
         <t>
+An IPN pattern <bcp14>SHALL</bcp14> logically contain exactly three components corresponding to the IPN scheme EID components of:
+        </t>
+        <ol>
+          <li>Allocator Identifier</li>
+          <li>Node Number</li>
+          <li>Service Number</li>
+        </ol>
+        <t>
 The conceptual model of the IPN pattern is that each of the components of the SSP can be matched as one of:
         </t>
         <dl>
@@ -276,9 +293,6 @@ The conceptual model of the IPN pattern is that each of the components of the SS
           <dt>Wildcard:</dt>
           <dd>This will match any valid value, but not the absence of a value.</dd>
         </dl>
-        <t>
-An IPN pattern <bcp14>SHALL</bcp14> contain exactly three components corresponding to the IPN scheme EID components.
-        </t>
         <t>
 Within a single component of the IPN pattern, the range intervals <bcp14>SHALL</bcp14> be disjoint and non-contiguous.
 Any overlapping or contiguity of intervals within a set can be coalesced into a single covering interval with the same meaning.
@@ -315,7 +329,12 @@ Because these are dealing with numeric values in an information model, the match
           <name>Pattern Set Logic</name>
           <t>
 One benefit of using an EID pattern with an information model of a sequence of numbers or ranges is that performing set logic such as intersection or containment is straightforward.
-For set logical behavior, the specific value case is treated as a singleton set and the wildcard case is treated as the unbounded-interval.
+For set logical behavior, the "specific value" case is treated as a singleton set and the wildcard case is treated as the unbounded-interval.
+          </t>
+          <t>
+Two IPN patterns are equivalent if their matching EID sets are identical.
+An IPN pattern processor <bcp14>MAY</bcp14> change the internal representation of a pattern to an equivalent one without keeping track of the original pattern.
+If an pattern-using application needs to ensure that original pattern encodings are kept, that needs to happen outside of the pattern processor.
           </t>
           <t>
 Two IPN patterns intersect if all of their corresponding components intersect, and the intersection of each component range can be readily computed using multi-interval set logic.
@@ -327,28 +346,45 @@ Likewise, one IPN pattern is a subset (or proper subset) of another pattern if a
           <t>
 The text form of the IPN pattern conforms to the ABNF in <xref target="fig-pattern-ipn-text"/>.
 Each component is separated by the same character "." as in the IPN URI scheme.
-This pattern uses reserved URI characters of "[" and "]" (see <xref section="2.2" target="RFC3986"/>) to indicate the presence of a range set for a component, the character "," to separate each range, and the character "-" to indicate the inclusive range within the set.
-Each of the numeric values within the range is inclusive.
-If the range does not contain two values it is a length-one range.
+This pattern uses reserved URI characters of "[" and "]" (see <xref section="2.2" target="RFC3986"/>) to indicate the presence of a range set for a component, the character "," to separate each range, and the character "-" to indicate an interval within the set.
+Each of the numeric values within an interval <bcp14>SHALL</bcp14> be treated as inclusive.
+If the interval does not contain two values it <bcp14>SHALL</bcp14> be treated is a length-one range.
+If the interval has a second value of "max" it <bcp14>SHALL</bcp14> be treated as having the largest value for that component.
           </t>
-          <t>
-The canonical text form of an IPN pattern <bcp14>SHALL</bcp14> order all range sets in ascending numeric order.
-          </t>
+          <aside>
+            <t>
+The Allocator Identifier and Node Number components each have a largest value of 2^32 - 1.
+The FQNN and Service Number components each have a largest value of 2^64 - 1.
+            </t>
+          </aside>
           <figure anchor="fig-pattern-ipn-text">
             <name>IPN Pattern ABNF Schema</name>
             <sourcecode markers="false" type="abnf">
-ipn-pat-item = "ipn:" ipn-ssp
-; Three logical components
-ipn-ssp = ipn-part-pat nbr-delim ipn-part-pat nbr-delim ipn-part-pat
+ipn-pat-item = "ipn:" (ipn-ssp3 / ipn-ssp2)
+; Separate allocator and node numbers
+ipn-ssp3 = ipn-part-pat nbr-delim ipn-part-pat nbr-delim ipn-part-pat
+; First component is the qualified node number
+ipn-ssp2 = ipn-part-pat nbr-delim ipn-part-pat
+; Each component in the pattern
 ipn-part-pat = ipn-decimal / ipn-range / wildcard
 
 ; Same normalized form as IPN scheme itself
 ipn-decimal = "0" / non-zero-decimal
 
 ipn-range = "[" ipn-interval *( "," ipn-interval ) "]"
-ipn-interval = ipn-decimal [ "-" ipn-decimal ]
+ipn-interval = ipn-decimal [ "-" (ipn-decimal / "max") ]
 </sourcecode>
           </figure>
+          <t>
+When decoding a two-component IPN pattern, the first component <bcp14>SHALL</bcp14> be treated as a fully-qualified node number (FQNN) in accordance with <xref section="3.3.1" target="I-D.ietf-dtn-ipn-update"/> and decomposed into separate allocator and node number components.
+There can be multiple valid decompositions of an FQNN component containing one or more intervals, and a pattern processor <bcp14>MAY</bcp14> choose any one that results in the same matching logic.
+When decoding, a pattern processor does not need to keep track of how many components the original pattern used; the pattern itself always has three components as defined in <xref target="sec-pattern-ipn"/>.
+          </t>
+          <t>
+The canonical text form of an IPN pattern <bcp14>SHALL</bcp14> use three components.
+The canonical text form <bcp14>SHALL NOT</bcp14> contain any overlapping or contiguous intervals.
+The canonical text form <bcp14>SHALL</bcp14> order all intervals in ascending numeric order.
+          </t>
         </section>
         <section>
           <name>CBOR Form</name>
@@ -372,8 +408,8 @@ The wildcard sentinel values have no intrinsic meaning and were simply chosen to
 The encoding of ranges is a compressed form in which each pair of values in the range indicates:
           </t>
           <ol>
-            <li>The non-zero offset from the previous one-past-end-of-range, or the offset from zero if there is no preceding range</li>
-            <li>The length of this range, which is inclusive of the first and last contained value so should always be non-zero</li>
+            <li>The non-zero offset from the previous one-past-end-of-range, or the offset from zero if there is no preceding range.</li>
+            <li>The length of this range, which is inclusive of the first and last contained value so will always be non-zero, or the <tt>null</tt> value if the length extends to the largest value for that component.</li>
           </ol>
           <t>
 Another way to interpret these pairs is that each number indicates the length of alternating "excluded" and "included" intervals for the range.
@@ -392,15 +428,17 @@ ipn-part-pat = uint / ipn-range / true
 
 ipn-range = [ 1* ipn-interval-pair ]
 ipn-interval-pair = (
+  ; only the first interval offset can be zero
   offset: uint,
-  length: uint .gt 0,
+  ; only the last interval length can be null
+  length: (uint .gt 0) / null,
 )
 </sourcecode>
           </figure>
         </section>
       </section>
     </section>
-    <section anchor="sec-tcpcl-cert-profile">
+    <section anchor="sec-pkix-cert-profile">
       <name>PKIX Certificate Profile Update</name>
       <t>
 This document expands upon the PKIX profile of TCPCLv4 <xref target="RFC9174"/> to allow an EID Pattern in any certificate where an Node ID is required or allowed.
@@ -457,6 +495,37 @@ The refusal or not to issue such subordinate certificates does not affect the ul
         </t>
       </section>
     </section>
+    <section>
+      <name>Enveloping Considerations</name>
+      <t>
+When an EID pattern is enveloped into a data store or protocol data unit, it is important to avoid requiring the processor of that containing context to understand the nuances of EID Pattern syntax.
+For the text form of EID Patterns this is straightforward because the encoded text string can simply be handled without concern for its contents.
+The use of an EID Pattern as a PKIX Other Name Form in <xref target="sec-pkix-cert-profile"/> makes use of this strategy.
+      </t>
+      <t>
+For the binary form of EID Patterns, when the encoded item is not handled as a simple byte string it is <bcp14>RECOMMENDED</bcp14> to embed the EID Pattern within a CBOR byte string as a single item.
+This is formalized by the following CDDL.
+      </t>
+      <sourcecode markers="false" type="cddl">
+embed-eid-pattern = bstr .cbor eid-pattern
+      </sourcecode>
+      <t>
+Embedding in a byte string this allows EID-Pattern-unaware processors to handle it without concern for its syntax or validity.
+Using a single-item embedding ensures that the number of pattern items contained is still available to decoders in the <tt>eid-pattern</tt> array header.
+      </t>
+      <t>
+A similar recommendation is provided here for enveloping EIDs themselves, which is not discussed in <xref target="RFC9171"/> so this document does not formally update <xref target="RFC9171"/>.
+For the binary form of EIDs, when the encoded item is not handled as a simple byte string it is <bcp14>RECOMMENDED</bcp14> to embed the EID within a CBOR byte string as a sequence.
+This is formalized by the following CDDL.
+      </t>
+      <sourcecode markers="false" type="cddl">
+embed-eid-structure = bstr .cborseq eid-structure
+      </sourcecode>
+      <t>
+Because the <tt>eid-structure</tt> is always a two-element array, there is no additional information provided by the array header so in this case it is elided for a more compact encoding.
+In fact, for IPN-scheme EIDs this byte string embedding is guaranteed not to exceed size of the normal (array item) CBOR encoding.
+      </t>
+    </section>
     <section anchor="sec-security">
       <name>Security Considerations</name>
       <t>
@@ -465,15 +534,16 @@ For PKIX Subject Alternative Name this is distinguished by the different Other N
 An EID which is inappropriately interpreted as an EID Pattern could allow an attacker to elevate access depending upon other aspects of the system being accessed.
       </t>
       <t>
-CAs which issue certificates containing EID Patterns need to consider the implications of an overly-broad pattern in the same way that current Web PKI CAs must manage certificates with wildcard DNS-IDs.
+CAs which issue certificates containing EID Patterns need to consider the implications of an overly-broad pattern in the same way that current Web PKI CAs manage certificates with wildcard DNS-IDs.
+This is discussed for DNS-IDs in <xref section="7.1" target="RFC9525"/>.
       </t>
       <t>
 Although the reserved characters "[" and "]" are disallowed within the URI authority and path segments by <xref target="RFC3986"/> there are still URI processors which could be lax about enforcing that restriction and could allow an EID pattern to be decoded in a place where an actual EID is expected.
 This could allow unwanted side-effects when the EID is handled by a BP Agent.
       </t>
       <t>
-Both URI authority and path segments are percent-encoded text and need to be handled by EID processors as such for both pattern matching and equality comparison.
-Additionally, for the IPN scheme there are numeric values that must be handled as such for pattern matching and comparison.
+The URI authority part and path segments are percent-encoded text and need to be handled by EID processors as such for both pattern matching and equality comparison.
+Additionally, for the IPN scheme there are numeric values that need to be handled as such for pattern matching and comparison.
       </t>
     </section>
     <section anchor="sec-iana">
@@ -484,9 +554,10 @@ Additionally, for the IPN scheme there are numeric values that must be handled a
 This specification re-uses the "Bundle Protocol URI Scheme Types" registry within the "Bundle Protocol" registry <xref target="IANA-BP"/> for the CBOR encoding of EID Patterns and adds an informative column "EID Pattern Reference" as in the following table.
         </t>
         <t>
-Specifications of new EID Pattern schemes SHALL define all of the required items from <xref target="sec-goals"/> to ensure that pattern behavior is consistent across different schemes.
+Specifications of new EID Pattern schemes <bcp14>SHALL</bcp14> define all of the required items from <xref target="sec-goals"/> to ensure that pattern behavior is consistent across different schemes.
         </t>
         <table align="center">
+          <name>Bundle Protocol URI Scheme Types</name>
           <thead>
             <tr>
               <th>Value</th>
@@ -509,9 +580,10 @@ Specifications of new EID Pattern schemes SHALL define all of the required items
         <name>Object Identifier for PKIX Other Name Forms</name>
         <t>
 IANA has created, under the "Structure of Management Information (SMI) Numbers" registry group <xref target="IANA-SMI"/>, a registry titled "SMI Security for PKIX Other Name Forms".
-This other name forms table is updated to include a row "id-on-bundleEIDPattern" for containing an Endpoint ID Pattern as in the following table.
+This other name forms table is updated to include a row for containing an Endpoint ID Pattern as in the following table.
         </t>
         <table align="center">
+          <name>PKIX Other Name Forms</name>
           <thead>
             <tr>
               <th>Decimal</th>
@@ -529,7 +601,58 @@ This other name forms table is updated to include a row "id-on-bundleEIDPattern"
         </table>
         <t>
 The formal structure of the associated other name form is in <xref target="sec-asn1-mod"/>.
-The use of this OID is defined in <xref target="sec-tcpcl-cert-profile"/>.
+The use of this form is defined in <xref target="sec-pkix-cert-profile"/>.
+        </t>
+      </section>
+      <section>
+        <name>C509 General Names Registry</name>
+        <t>
+IANA has created, under the "CBOR Encoded X.509 (C509) Parameters" registry group <xref target="IANA-C509"/>, a registry titled "C509 General Names Registry".
+This general names table is updated to include a row for containing an Endpoint ID Pattern as in the following table.
+        </t>
+        <table align="center">
+          <name>C509 General Names</name>
+          <thead>
+            <tr>
+              <th>Value</th>
+              <th>General Names</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>-<cref>TBA2</cref></td>
+              <td>
+                <dl spacing="compact">
+                  <dt>Name:</dt>
+                  <dd>otherName with BundleEIDPattern</dd>
+                  <dt>Comments:</dt>
+                  <dd>id-on-bundleEIDPattern (1.3.6.1.5.5.7.8.<cref>ON-TBA</cref>) 06&nbsp;08&nbsp;2B&nbsp;06&nbsp;01&nbsp;05&nbsp;05&nbsp;07&nbsp;08&nbsp;<cref>ON-TBA</cref></dd>
+                  <dt>Value:</dt>
+                  <dd><tt>embed-eid-pattern</tt> (from [this specification])</dd>
+                </dl>
+              </td>
+            </tr>
+            <tr>
+              <td>-<cref>TBA1</cref></td>
+              <td>
+                <dl spacing="compact">
+                  <dt>Name:</dt>
+                  <dd>otherName with BundleEID</dd>
+                  <dt>Comments:</dt>
+                  <dd>id-on-bundleEID (1.3.6.1.5.5.7.8.11) 06&nbsp;08&nbsp;2B&nbsp;06&nbsp;01&nbsp;05&nbsp;05&nbsp;07&nbsp;08&nbsp;0B</dd>
+                  <dt>Value:</dt>
+                  <dd><tt>embed-eid-structure</tt> (from [this specification])</dd>
+                </dl>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <t>
+Both of these code points can be used in a C509 certificate to create a more concise encoding of the same Other Name value than the general form defined in <xref section="3.3" target="I-D.ietf-cose-cbor-encoded-cert"/> which uses an OID to identify the Other Name Form and ASN.1 encoded text form of EID and EID Pattern.
+These code points are purely to enable smaller encodings, an EID-unaware certificate processor can still use the longer general form encoding of these forms and not lose any information.
+        </t>
+        <t>
+The use of these forms is defined in <xref target="sec-pkix-cert-profile"/>.
         </t>
       </section>
     </section>
@@ -542,6 +665,14 @@ The use of this OID is defined in <xref target="sec-tcpcl-cert-profile"/>.
         <reference anchor="IANA-BP" target="https://www.iana.org/assignments/bundle/">
           <front>
             <title>Bundle Protocol</title>
+            <author>
+              <organization>IANA</organization>
+            </author>
+          </front>
+        </reference>
+        <reference anchor="IANA-C509" target="#TBA">
+          <front>
+            <title>CBOR Encoded X.509 (C509) Parameters</title>
             <author>
               <organization>IANA</organization>
             </author>
@@ -566,6 +697,7 @@ The use of this OID is defined in <xref target="sec-tcpcl-cert-profile"/>.
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.9174.xml"/>
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.9525.xml"/>
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml3/reference.I-D.ietf-dtn-ipn-update.xml"/>
+        <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml3/reference.I-D.ietf-cose-cbor-encoded-cert.xml"/>
         <reference anchor="X.680" target="https://www.itu.int/rec/T-REC-X.680-201508-I/en">
           <front>
             <title>Information technology -- Abstract Syntax Notation One (ASN.1): Specification of basic notation</title>
@@ -633,7 +765,7 @@ on-bundleEIDPattern OTHER-NAME ::= {
     BundleEIDPattern IDENTIFIED BY { id-on-bundleEIDPattern }
 }
 
-id-on-bundleEIDPattern OBJECT IDENTIFIER ::= { id-on ON-TBD }
+id-on-bundleEIDPattern OBJECT IDENTIFIER ::= { id-on ON-TBA }
 
 -- Encoding allows URI reserved characters
 BundleEIDPattern ::= UTF8String
@@ -740,6 +872,53 @@ An unordered pattern such as <tt>ipn:0.3.[10-19,0-4]</tt> would be normalized to
 <sourcecode type="eidpat">
 ipn:0.3.[0-4,10-19]
 </sourcecode>
+        </section>
+        <section>
+          <name>Two-Component Text Form</name>
+          <t>
+This example includes a range over the FQNN in a two-compoennt form between <tt>ipn:4196183048192100.*</tt> to <tt>ipn:4196183048192500.*</tt> inclusive as as the pattern
+          </t>
+<sourcecode type="eidpat">
+ipn:[4196183048192100-4196183048192500].*
+</sourcecode>
+          <t>
+which is decomposed into the equivalent three-component pattern
+          </t>
+<sourcecode type="eidpat">
+ipn:977000.[100-500].*
+</sourcecode>
+          <t>
+which has a CBOR form of:
+          </t>
+<sourcecode type="cbor">
+[[2, [977000, [100, 401], true]]]
+</sourcecode>
+          <t>
+The next example has a range over the FQNN which spans multiple allocators between <tt>ipn:4196183048192100.*</tt> to <tt>ipn:4196191638126692.*</tt> inclusive as the pattern
+          </t>
+<sourcecode type="eidpat">
+ipn:[4196183048192100-4196191638126692].*
+</sourcecode>
+          <t>
+which is decomposed into one possible equivalent pattern
+          </t>
+<sourcecode type="eidpat">
+ipn:977000.[100-max].*|ipn:977001.*.*|ipn:977002.[0-100].*
+</sourcecode>
+          <t>
+which has a CBOR form of:
+          </t>
+<sourcecode type="cbor">
+[
+  [2, [977000, [100, null], true]],
+  [2, [977001, true, true]],
+  [2, [977002, [0, 101], true]]
+]
+</sourcecode>
+          <t>
+As can be seen in that example, because the FQNN interval does not need to neatly align with the per-allocator node number intervals, the general case equivalent pattern will need to include multiple pattern items.
+The equivalent pattern also makes use of the wildcard node number in the second item to simplify matching and reduce encoded size when the FQNN interval covers all node numbers within an allocator.
+          </t>
         </section>
       </section>
       <section anchor="sec-ex-pattern-multi">
