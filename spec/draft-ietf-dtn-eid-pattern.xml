@@ -269,6 +269,14 @@ Because of this, the pattern for IPN scheme EIDs is based on matching a numeric 
 For the remainder of this document, the term "IPN pattern" is used as shorthand to mean the EID pattern item used for the "ipn" scheme.
         </t>
         <t>
+An IPN pattern <bcp14>SHALL</bcp14> logically contain exactly three components corresponding to the IPN scheme EID components of:
+        </t>
+        <ol>
+          <li>Allocator Identifier</li>
+          <li>Node Number</li>
+          <li>Service Number</li>
+        </ol>
+        <t>
 The conceptual model of the IPN pattern is that each of the components of the SSP can be matched as one of:
         </t>
         <dl>
@@ -279,9 +287,6 @@ The conceptual model of the IPN pattern is that each of the components of the SS
           <dt>Wildcard:</dt>
           <dd>This will match any valid value, but not the absence of a value.</dd>
         </dl>
-        <t>
-An IPN pattern <bcp14>SHALL</bcp14> contain exactly three components corresponding to the IPN scheme EID components.
-        </t>
         <t>
 Within a single component of the IPN pattern, the range intervals <bcp14>SHALL</bcp14> be disjoint and non-contiguous.
 Any overlapping or contiguity of intervals within a set can be coalesced into a single covering interval with the same meaning.
@@ -318,7 +323,12 @@ Because these are dealing with numeric values in an information model, the match
           <name>Pattern Set Logic</name>
           <t>
 One benefit of using an EID pattern with an information model of a sequence of numbers or ranges is that performing set logic such as intersection or containment is straightforward.
-For set logical behavior, the specific value case is treated as a singleton set and the wildcard case is treated as the unbounded-interval.
+For set logical behavior, the "specific value" case is treated as a singleton set and the wildcard case is treated as the unbounded-interval.
+          </t>
+          <t>
+Two IPN patterns are equivalent if their matching EID sets are identical.
+An IPN pattern processor <bcp14>MAY</bcp14> change the internal representation of a pattern to an equivalent one without keeping track of the original pattern.
+If an pattern-using application needs to ensure that original pattern encodings are kept, that needs to happen outside of the pattern processor.
           </t>
           <t>
 Two IPN patterns intersect if all of their corresponding components intersect, and the intersection of each component range can be readily computed using multi-interval set logic.
@@ -330,28 +340,45 @@ Likewise, one IPN pattern is a subset (or proper subset) of another pattern if a
           <t>
 The text form of the IPN pattern conforms to the ABNF in <xref target="fig-pattern-ipn-text"/>.
 Each component is separated by the same character "." as in the IPN URI scheme.
-This pattern uses reserved URI characters of "[" and "]" (see <xref section="2.2" target="RFC3986"/>) to indicate the presence of a range set for a component, the character "," to separate each range, and the character "-" to indicate the inclusive range within the set.
-Each of the numeric values within the range is inclusive.
-If the range does not contain two values it is a length-one range.
+This pattern uses reserved URI characters of "[" and "]" (see <xref section="2.2" target="RFC3986"/>) to indicate the presence of a range set for a component, the character "," to separate each range, and the character "-" to indicate an interval within the set.
+Each of the numeric values within an interval <bcp14>SHALL</bcp14> be treated as inclusive.
+If the interval does not contain two values it <bcp14>SHALL</bcp14> be treated is a length-one range.
+If the interval has a second value of "max" it <bcp14>SHALL</bcp14> be treated as having the largest value for that component.
           </t>
-          <t>
-The canonical text form of an IPN pattern <bcp14>SHALL</bcp14> order all range sets in ascending numeric order.
-          </t>
+          <aside>
+            <t>
+The Allocator Identifier and Node Number components each have a largest value of 2^32 - 1.
+The FQNN and Service Number components each have a largest value of 2^64 - 1.
+            </t>
+          </aside>
           <figure anchor="fig-pattern-ipn-text">
             <name>IPN Pattern ABNF Schema</name>
             <sourcecode markers="false" type="abnf">
-ipn-pat-item = "ipn:" ipn-ssp
-; Three logical components
-ipn-ssp = ipn-part-pat nbr-delim ipn-part-pat nbr-delim ipn-part-pat
+ipn-pat-item = "ipn:" (ipn-ssp3 / ipn-ssp2)
+; Separate allocator and node numbers
+ipn-ssp3 = ipn-part-pat nbr-delim ipn-part-pat nbr-delim ipn-part-pat
+; First component is the qualified node number
+ipn-ssp2 = ipn-part-pat nbr-delim ipn-part-pat
+; Each component in the pattern
 ipn-part-pat = ipn-decimal / ipn-range / wildcard
 
 ; Same normalized form as IPN scheme itself
 ipn-decimal = "0" / non-zero-decimal
 
 ipn-range = "[" ipn-interval *( "," ipn-interval ) "]"
-ipn-interval = ipn-decimal [ "-" ipn-decimal ]
+ipn-interval = ipn-decimal [ "-" (ipn-decimal / "max") ]
 </sourcecode>
           </figure>
+          <t>
+When decoding a two-component IPN pattern, the first component <bcp14>SHALL</bcp14> be treated as a fully-qualified node number (FQNN) in accordance with <xref section="3.3.1" target="I-D.ietf-dtn-ipn-update"/> and decomposed into separate allocator and node number components.
+There can be multiple valid decompositions of an FQNN component containing one or more intervals, and a pattern processor <bcp14>MAY</bcp14> choose any one that results in the same matching logic.
+When decoding, a pattern processor does not need to keep track of how many components the original pattern used; the pattern itself always has three components as defined in <xref target="sec-pattern-ipn"/>.
+          </t>
+          <t>
+The canonical text form of an IPN pattern <bcp14>SHALL</bcp14> use three components.
+The canonical text form <bcp14>SHALL NOT</bcp14> contain any overlapping or contiguous intervals.
+The canonical text form <bcp14>SHALL</bcp14> order all intervals in ascending numeric order.
+          </t>
         </section>
         <section>
           <name>CBOR Form</name>
@@ -375,8 +402,8 @@ The wildcard sentinel values have no intrinsic meaning and were simply chosen to
 The encoding of ranges is a compressed form in which each pair of values in the range indicates:
           </t>
           <ol>
-            <li>The non-zero offset from the previous one-past-end-of-range, or the offset from zero if there is no preceding range</li>
-            <li>The length of this range, which is inclusive of the first and last contained value so will always be non-zero</li>
+            <li>The non-zero offset from the previous one-past-end-of-range, or the offset from zero if there is no preceding range.</li>
+            <li>The length of this range, which is inclusive of the first and last contained value so will always be non-zero, or the <tt>null</tt> value if the length extends to the largest value for that component.</li>
           </ol>
           <t>
 Another way to interpret these pairs is that each number indicates the length of alternating "excluded" and "included" intervals for the range.
@@ -395,8 +422,10 @@ ipn-part-pat = uint / ipn-range / true
 
 ipn-range = [ 1* ipn-interval-pair ]
 ipn-interval-pair = (
+  ; only the first interval offset can be zero
   offset: uint,
-  length: uint .gt 0,
+  ; only the last interval length can be null
+  length: (uint .gt 0) / null,
 )
 </sourcecode>
           </figure>
@@ -469,13 +498,14 @@ An EID which is inappropriately interpreted as an EID Pattern could allow an att
       </t>
       <t>
 CAs which issue certificates containing EID Patterns need to consider the implications of an overly-broad pattern in the same way that current Web PKI CAs manage certificates with wildcard DNS-IDs.
+This is discussed for DNS-IDs in <xref section="7.1" target="RFC9525"/>.
       </t>
       <t>
 Although the reserved characters "[" and "]" are disallowed within the URI authority and path segments by <xref target="RFC3986"/> there are still URI processors which could be lax about enforcing that restriction and could allow an EID pattern to be decoded in a place where an actual EID is expected.
 This could allow unwanted side-effects when the EID is handled by a BP Agent.
       </t>
       <t>
-Both URI authority and path segments are percent-encoded text and need to be handled by EID processors as such for both pattern matching and equality comparison.
+The URI authority part and path segments are percent-encoded text and need to be handled by EID processors as such for both pattern matching and equality comparison.
 Additionally, for the IPN scheme there are numeric values that need to be handled as such for pattern matching and comparison.
       </t>
     </section>
@@ -743,6 +773,53 @@ An unordered pattern such as <tt>ipn:0.3.[10-19,0-4]</tt> would be normalized to
 <sourcecode type="eidpat">
 ipn:0.3.[0-4,10-19]
 </sourcecode>
+        </section>
+        <section>
+          <name>Two-Component Text Form</name>
+          <t>
+This example includes a range over the FQNN in a two-compoennt form between <tt>ipn:4196183048192100.*</tt> to <tt>ipn:4196183048192500.*</tt> inclusive as as the pattern
+          </t>
+<sourcecode type="eidpat">
+ipn:[4196183048192100-4196183048192500].*
+</sourcecode>
+          <t>
+which is decomposed into the equivalent three-component pattern
+          </t>
+<sourcecode type="eidpat">
+ipn:977000.[100-500].*
+</sourcecode>
+          <t>
+which has a CBOR form of:
+          </t>
+<sourcecode type="cbor">
+[[2, [977000, [100, 401], true]]]
+</sourcecode>
+          <t>
+The next example has a range over the FQNN which spans multiple allocators between <tt>ipn:4196183048192100.*</tt> to <tt>ipn:4196191638126692.*</tt> inclusive as the pattern
+          </t>
+<sourcecode type="eidpat">
+ipn:[4196183048192100-4196191638126692].*
+</sourcecode>
+          <t>
+which is decomposed into one possible equivalent pattern
+          </t>
+<sourcecode type="eidpat">
+ipn:977000.[100-max].*|ipn:977001.*.*|ipn:977002.[0-100].*
+</sourcecode>
+          <t>
+which has a CBOR form of:
+          </t>
+<sourcecode type="cbor">
+[
+  [2, [977000, [100, null], true]],
+  [2, [977001, true, true]],
+  [2, [977002, [0, 101], true]]
+]
+</sourcecode>
+          <t>
+As can be seen in that example, because the FQNN interval does not need to neatly align with the per-allocator node number intervals, the general case equivalent pattern will need to include multiple pattern items.
+The equivalent pattern also makes use of the wildcard node number in the second item to simplify matching and reduce encoded size when the FQNN interval covers all node numbers within an allocator.
+          </t>
         </section>
       </section>
       <section anchor="sec-ex-pattern-multi">
