@@ -557,6 +557,7 @@ This specification re-uses the "Bundle Protocol URI Scheme Types" registry withi
 Specifications of new EID Pattern schemes <bcp14>SHALL</bcp14> define all of the required items from <xref target="sec-goals"/> to ensure that pattern behavior is consistent across different schemes.
         </t>
         <table align="center">
+          <name>Bundle Protocol URI Scheme Types</name>
           <thead>
             <tr>
               <th>Value</th>
@@ -579,9 +580,10 @@ Specifications of new EID Pattern schemes <bcp14>SHALL</bcp14> define all of the
         <name>Object Identifier for PKIX Other Name Forms</name>
         <t>
 IANA has created, under the "Structure of Management Information (SMI) Numbers" registry group <xref target="IANA-SMI"/>, a registry titled "SMI Security for PKIX Other Name Forms".
-This other name forms table is updated to include a row "id-on-bundleEIDPattern" for containing an Endpoint ID Pattern as in the following table.
+This other name forms table is updated to include a row for containing an Endpoint ID Pattern as in the following table.
         </t>
         <table align="center">
+          <name>PKIX Other Name Forms</name>
           <thead>
             <tr>
               <th>Decimal</th>
@@ -609,6 +611,7 @@ IANA has created, under the "CBOR Encoded X.509 (C509) Parameters" registry grou
 This general names table is updated to include a row for containing an Endpoint ID Pattern as in the following table.
         </t>
         <table align="center">
+          <name>C509 General Names</name>
           <thead>
             <tr>
               <th>Value</th>
