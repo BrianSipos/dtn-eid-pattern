@@ -1,4 +1,3 @@
-
 abnf
 ABNF
 ASN
@@ -34,6 +33,7 @@ EID
 eidpattern
 EIDPATTERN
 EIDs
+FQNN
 fullssp
 IANA
 IEC
