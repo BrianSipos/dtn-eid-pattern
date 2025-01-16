@@ -12,6 +12,9 @@ bundleEIDPattern
 BundleEIDPattern
 bundleSecurity
 Caini
+canonicalization
+Canonicalization
+canonicalized
 CAs
 CBHE
 CBOR

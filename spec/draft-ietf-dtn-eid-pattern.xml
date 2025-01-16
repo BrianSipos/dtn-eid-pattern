@@ -160,6 +160,11 @@ This document does not define a universal form of EID Pattern, though text forms
 Instead, in order to achieve efficiencies in non-text encoding, each EID scheme uses a different form of complex pattern matching.
 There are also scheme-independent match-all forms that function without a processor needing scheme-specific logic for all possible schemes.
       </t>
+      <t>
+An EID Pattern processor <bcp14>MAY</bcp14> normalize the internal representation of a pattern to an equivalent one without keeping track of the original pattern information or encoding.
+If an pattern-using application needs to ensure that original encodings are kept, that needs to happen outside of the pattern processor.
+See <xref target="sec-envelope"/> for recommendations about this need.
+      </t>
       <section anchor="sec-pattern-top">
         <name>Pattern Set and Pattern Items</name>
         <t>
@@ -254,6 +259,7 @@ any-ssp-item = (uint .gt 0) / tstr
           <name>EID Matching</name>
           <t>
 An any-SSP pattern <bcp14>SHALL</bcp14> be considered to match a specific EID when both have the same normalized scheme.
+Scheme normalization for text EIDs is to convert to a lower-case alphabetic form in accordance with <xref section="3.1" target="RFC3986"/>.
 For schemes which are known to the processing entity, the integer form <bcp14>SHALL</bcp14> be the normalized form.
 For schemes which are unknown to the processing entity, the text form of the any-SSP pattern scheme <bcp14>SHALL</bcp14> be used to match text-form EIDs and the integer form of the pattern scheme <bcp14>SHALL</bcp14> be used to match CBOR-form EIDs.
           </t>
@@ -333,10 +339,6 @@ For set logical behavior, the "specific value" case is treated as a singleton se
           </t>
           <t>
 Two IPN patterns are equivalent if their matching EID sets are identical.
-An IPN pattern processor <bcp14>MAY</bcp14> change the internal representation of a pattern to an equivalent one without keeping track of the original pattern.
-If an pattern-using application needs to ensure that original pattern encodings are kept, that needs to happen outside of the pattern processor.
-          </t>
-          <t>
 Two IPN patterns intersect if all of their corresponding components intersect, and the intersection of each component range can be readily computed using multi-interval set logic.
 Likewise, one IPN pattern is a subset (or proper subset) of another pattern if all of the components is a subset (or proper subset) of the other's corresponding component.
           </t>
@@ -495,7 +497,7 @@ The refusal or not to issue such subordinate certificates does not affect the ul
         </t>
       </section>
     </section>
-    <section>
+    <section anchor="sec-envelope">
       <name>Enveloping Considerations</name>
       <t>
 When an EID pattern is enveloped into a data store or protocol data unit, it is important to avoid requiring the processor of that containing context to understand the nuances of EID Pattern syntax.
@@ -620,7 +622,7 @@ This general names table is updated to include a row for containing an Endpoint 
           </thead>
           <tbody>
             <tr>
-              <td>-<cref>TBA2</cref></td>
+              <td><cref>-TBA2</cref></td>
               <td>
                 <dl spacing="compact">
                   <dt>Name:</dt>
@@ -633,7 +635,7 @@ This general names table is updated to include a row for containing an Endpoint 
               </td>
             </tr>
             <tr>
-              <td>-<cref>TBA1</cref></td>
+              <td><cref>-TBA1</cref></td>
               <td>
                 <dl spacing="compact">
                   <dt>Name:</dt>
@@ -860,18 +862,62 @@ which has a CBOR form of:
           <sourcecode type="cbor">
 [[2, [0, 3, [0, 5, 5, 10]]]]
 </sourcecode>
+        </section>
+        <section>
+          <name>Normalization and Canonicalization</name>
           <t>
-An overlapping or contiguous pattern such as <tt>ipn:0.3.[0-9,10-19]</tt> or <tt>ipn:0.3.[0-15,10-19]</tt> or <tt>ipn:0.3.[10-19,0-9]</tt> would be normalized to
-           </t>
+An overlapping or contiguous pattern such as one of the following
+          </t>
+          <sourcecode type="eidpat">
+ipn:0.3.[0-9,10-19]
+ipn:0.3.[0-15,10-19]
+ipn:0.3.[10-19,0-9]
+</sourcecode>
+          <t>
+can be normalized to the equivalent pattern
+          </t>
           <sourcecode type="eidpat">
 ipn:0.3.[0-19]
 </sourcecode>
           <t>
-An unordered pattern such as <tt>ipn:0.3.[10-19,0-4]</tt> would be normalized to
+An unordered pattern such as
+          </t>
+          <sourcecode type="eidpat">
+ipn:0.3.[10-19,0-4]
+</sourcecode>
+          <t>
+can be normalized to the equivalent pattern
           </t>
           <sourcecode type="eidpat">
 ipn:0.3.[0-4,10-19]
 </sourcecode>
+          <t>
+A pattern where a range covers the same component set as a wildcard would, as in
+          </t>
+          <sourcecode type="eidpat">
+ipn:977000.[0-4294967295].*
+</sourcecode>
+          <t>
+can be identified and normalized to the equivalent pattern
+          </t>
+          <sourcecode type="eidpat">
+ipn:977000.*.*
+</sourcecode>
+          <t>
+When the end of an interval is the largest value of the corresponding component, as in
+          </t>
+          <sourcecode type="eidpat">
+ipn:977000.[10000-4294967295].*
+</sourcecode>
+          <t>
+the last value of the last interval can be canonicalized to the pattern
+          </t>
+          <sourcecode type="eidpat">
+ipn:977000.[10000-max].*
+</sourcecode>
+          <t>
+which does not affect the information model but makes the encoded form shorter (and more understandable to a human).
+          </t>
         </section>
         <section>
           <name>Two-Component Text Form</name>

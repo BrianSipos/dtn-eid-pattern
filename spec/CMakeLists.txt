@@ -147,7 +147,8 @@ if(TRUE)
         urivaliderrors ALL
         BYPRODUCTS "${URIVALIDERRORS_TXT}"
         DEPENDS "${DRAFT_NAME_XML}" "${SPLIT_ARTWORK}" "${CHECK_URI}" "${COMBINED_ABNF}"
-        COMMAND ${PYTHON} "${SPLIT_ARTWORK}" --lines "${DRAFT_NAME_XML}" "'//sourcecode[@type=\"eidpat\"]|//tt[(starts-with(.,\"dtn:\"))or(starts-with(.,\"ipn:\"))]'" "${CHECK_URI}" --log-level=info "${COMBINED_ABNF}" 2>"${URIVALIDERRORS_TXT}" 1>&2
+        COMMAND ${PYTHON} "${SPLIT_ARTWORK}" --lines=combine "${DRAFT_NAME_XML}" "'//sourcecode[@type=\"eidpat\"]|//tt[(starts-with(.,\"dtn:\"))or(starts-with(.,\"ipn:\"))]'" "${CHECK_URI}" "${COMBINED_ABNF}" 2>"${URIVALIDERRORS_TXT}" 1>&2
+        COMMENT "Generating ${URIVALIDERRORS_TXT}"
     )
     install(
         FILES "${CMAKE_CURRENT_BINARY_DIR}/${URIVALIDERRORS_TXT}"

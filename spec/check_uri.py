@@ -22,7 +22,7 @@ def main():
     args = parser.parse_args()
     logging.basicConfig(
         level=args.log_level.upper(),
-        stream=sys.stdout
+        stream=sys.stderr
     )
 
     LOGGER.debug('Loading schema from %s', args.schema)
