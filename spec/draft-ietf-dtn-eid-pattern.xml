@@ -610,7 +610,7 @@ The use of this form is defined in <xref target="sec-pkix-cert-profile"/>.
         <name>C509 General Names Registry</name>
         <t>
 IANA has created, under the "CBOR Encoded X.509 (C509) Parameters" registry group <xref target="IANA-C509"/>, a registry titled "C509 General Names Registry".
-This general names table is updated to include rows for BP Endpoint ID and Endpoint ID Pattern with the following parameters.
+This general names table is updated to include a row for BP Endpoint ID Pattern with the following parameters.
         </t>
         <dl newline="true">
           <dt>Label:</dt>
@@ -622,6 +622,9 @@ This general names table is updated to include rows for BP Endpoint ID and Endpo
           <dt>Value:</dt>
           <dd><tt>embed-eid-pattern</tt> (from [this specification])</dd>
         </dl>
+        <t>
+This general names table is updated to include a row for BP Endpoint ID with the following parameters.
+        </t>
         <dl newline="true">
           <dt>Label:</dt>
           <dd><cref>-TBA1</cref></dd>
