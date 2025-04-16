@@ -553,7 +553,7 @@ Additionally, for the IPN scheme there are numeric values that need to be handle
       <section anchor="sec-iana-scheme-types">
         <name>Bundle Protocol URI Scheme Types</name>
         <t>
-This specification re-uses the "Bundle Protocol URI Scheme Types" registry within the "Bundle Protocol" registry <xref target="IANA-BP"/> for the CBOR encoding of EID Patterns and adds an informative column "EID Pattern Reference" as in the following table.
+This specification re-uses the "Bundle Protocol URI Scheme Types" registry within the "Bundle Protocol" registry group <xref target="IANA-BP"/> for the CBOR encoding of EID Patterns and adds an informative column "EID Pattern Reference" as in the following table.
         </t>
         <t>
 Specifications of new EID Pattern schemes <bcp14>SHALL</bcp14> define all of the required items from <xref target="sec-goals"/> to ensure that pattern behavior is consistent across different schemes.
@@ -610,48 +610,34 @@ The use of this form is defined in <xref target="sec-pkix-cert-profile"/>.
         <name>C509 General Names Registry</name>
         <t>
 IANA has created, under the "CBOR Encoded X.509 (C509) Parameters" registry group <xref target="IANA-C509"/>, a registry titled "C509 General Names Registry".
-This general names table is updated to include a row for containing an Endpoint ID Pattern as in the following table.
+This general names table is updated to include a row for BP Endpoint ID Pattern with the following parameters.
         </t>
-        <table align="center">
-          <name>C509 General Names</name>
-          <thead>
-            <tr>
-              <th>Value</th>
-              <th>General Names</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td><cref>-TBA2</cref></td>
-              <td>
-                <dl spacing="compact">
-                  <dt>Name:</dt>
-                  <dd>otherName with BundleEIDPattern</dd>
-                  <dt>Comments:</dt>
-                  <dd>id-on-bundleEIDPattern (1.3.6.1.5.5.7.8.<cref>ON-TBA</cref>) 06&nbsp;08&nbsp;2B&nbsp;06&nbsp;01&nbsp;05&nbsp;05&nbsp;07&nbsp;08&nbsp;<cref>ON-TBA</cref></dd>
-                  <dt>Value:</dt>
-                  <dd><tt>embed-eid-pattern</tt> (from [this specification])</dd>
-                </dl>
-              </td>
-            </tr>
-            <tr>
-              <td><cref>-TBA1</cref></td>
-              <td>
-                <dl spacing="compact">
-                  <dt>Name:</dt>
-                  <dd>otherName with BundleEID</dd>
-                  <dt>Comments:</dt>
-                  <dd>id-on-bundleEID (1.3.6.1.5.5.7.8.11) 06&nbsp;08&nbsp;2B&nbsp;06&nbsp;01&nbsp;05&nbsp;05&nbsp;07&nbsp;08&nbsp;0B</dd>
-                  <dt>Value:</dt>
-                  <dd><tt>embed-eid-structure</tt> (from [this specification])</dd>
-                </dl>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+        <dl newline="true">
+          <dt>Label:</dt>
+          <dd><cref>-TBA2</cref></dd>
+          <dt>Name:</dt>
+          <dd>otherName with BundleEIDPattern</dd>
+          <dt>Comments:</dt>
+          <dd>id-on-bundleEIDPattern (1.3.6.1.5.5.7.8.<cref>ON-TBA</cref>) 06&nbsp;08&nbsp;2B&nbsp;06&nbsp;01&nbsp;05&nbsp;05&nbsp;07&nbsp;08&nbsp;<cref>ON-TBA</cref></dd>
+          <dt>Value:</dt>
+          <dd><tt>embed-eid-pattern</tt> (from [this specification])</dd>
+        </dl>
+        <t>
+This general names table is updated to include a row for BP Endpoint ID with the following parameters.
+        </t>
+        <dl newline="true">
+          <dt>Label:</dt>
+          <dd><cref>-TBA1</cref></dd>
+          <dt>Name:</dt>
+          <dd>otherName with BundleEID</dd>
+          <dt>Comments:</dt>
+          <dd>id-on-bundleEID (1.3.6.1.5.5.7.8.11) 06&nbsp;08&nbsp;2B&nbsp;06&nbsp;01&nbsp;05&nbsp;05&nbsp;07&nbsp;08&nbsp;0B</dd>
+          <dt>Value:</dt>
+          <dd><tt>embed-eid-structure</tt> (from [this specification])</dd>
+        </dl>
         <t>
 Both of these code points can be used in a C509 certificate to create a more concise encoding of the same Other Name value than the general form defined in <xref section="3.3" target="I-D.ietf-cose-cbor-encoded-cert"/> which uses an OID to identify the Other Name Form and ASN.1 encoded text form of EID and EID Pattern.
-These code points are purely to enable smaller encodings, an EID-unaware certificate processor can still use the longer general form encoding of these forms and not lose any information.
+These code points are purely to enable smaller encodings, an EID-unaware certificate processor can still use the longer general (ASN.1) encoding of these other name forms and not lose any information.
         </t>
         <t>
 The use of these forms is defined in <xref target="sec-pkix-cert-profile"/>.
