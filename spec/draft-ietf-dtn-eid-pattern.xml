@@ -8,7 +8,7 @@
 ]>
 <rfc xmlns:xi="http://www.w3.org/2001/XInclude" category="info" consensus="true" docName="draft-ietf-dtn-eid-pattern-01" ipr="trust200902" submissionType="IETF" tocInclude="true" version="3">
   <front>
-    <title abbrev="BP EID-Pattern">
+    <title abbrev="BP EID Patterns">
 Bundle Protocol Endpoint ID Patterns
     </title>
     <seriesInfo name="Internet-Draft" value="draft-ietf-dtn-eid-pattern-01"/>
@@ -346,12 +346,19 @@ Likewise, one IPN pattern is a subset (or proper subset) of another pattern if a
         <section>
           <name>Text Form</name>
           <t>
-The text form of the IPN pattern conforms to the ABNF in <xref target="fig-pattern-ipn-text"/>.
+The text form of the IPN pattern conforms to the ABNF in <xref target="fig-pattern-ipn-text"/>, which is a superset of the IPN scheme itself as defined in <xref section="4.1" target="I-D.ietf-dtn-ipn-update"/> but with a different structure.
 Each component is separated by the same character "." as in the IPN URI scheme.
-This pattern uses reserved URI characters of "[" and "]" (see <xref section="2.2" target="RFC3986"/>) to indicate the presence of a range set for a component, the character "," to separate each range, and the character "-" to indicate an interval within the set.
-Each of the numeric values within an interval <bcp14>SHALL</bcp14> be treated as inclusive.
-If the interval does not contain two values it <bcp14>SHALL</bcp14> be treated is a length-one range.
-If the interval has a second value of "max" it <bcp14>SHALL</bcp14> be treated as having the largest value for that component.
+This pattern uses reserved URI characters of "[" and "]" (see <xref section="2.2" target="RFC3986"/>) to indicate the presence of a range set for a component, the character "," to separate the intervals of a range, the character "-" to indicate an interval within the set, and the character "+" to indicate a half-open interval.
+          </t>
+          <t>
+The enveloping characters "[" and "]" <bcp14>SHALL</bcp14> indicate the presence of a range of possible values for that component.
+The logical structure and ABNF below disallows the possibility of nested ranges.
+Within each range, the character "," <bcp14>SHALL</bcp14> separate multiple numeric intervals within the range.
+The presence of a completely empty interval (<em>e.g.</em>, "[]" or "[,3]") is disallowed by the ABNF below and <bcp14>SHALL</bcp14> be treated as invalid.
+If an interval contains a single numeric value it <bcp14>SHALL</bcp14> be treated is a length-one range.
+If an interval contains two numeric values separated by a "-" character, the interval <bcp14>SHALL</bcp14> be treated as inclusive of both values.
+The lower bound of the interval is expected be on the left side of the "-" separator, but decoders <bcp14>SHALL</bcp14> handle both possible orderings of interval bounds.
+If an interval contains a single numeric value followed by the half-open "+" character it <bcp14>SHALL</bcp14> be treated as having the lower bound of that value and the upper bound as the largest value for that component.
           </t>
           <aside>
             <t>
@@ -366,7 +373,7 @@ ipn-pat-item = "ipn:" (ipn-ssp3 / ipn-ssp2)
 ; Separate allocator and node numbers
 ipn-ssp3 = ipn-part-pat nbr-delim ipn-part-pat nbr-delim ipn-part-pat
 ; First component is the qualified node number
-ipn-ssp2 = ipn-part-pat nbr-delim ipn-part-pat
+ipn-ssp2 = ("!" / ipn-part-pat) nbr-delim ipn-part-pat
 ; Each component in the pattern
 ipn-part-pat = ipn-decimal / ipn-range / wildcard
 
@@ -374,11 +381,15 @@ ipn-part-pat = ipn-decimal / ipn-range / wildcard
 ipn-decimal = "0" / non-zero-decimal
 
 ipn-range = "[" ipn-interval *( "," ipn-interval ) "]"
-ipn-interval = ipn-decimal [ "-" (ipn-decimal / "max") ]
+ipn-interval = ipn-decimal [ ("-" ipn-decimal) / "+" ]
 </sourcecode>
           </figure>
           <t>
 When decoding a two-component IPN pattern, the first component <bcp14>SHALL</bcp14> be treated as a fully-qualified node number (FQNN) in accordance with <xref section="3.3.1" target="I-D.ietf-dtn-ipn-update"/> and decomposed into separate allocator and node number components.
+When decoding a two-component IPN pattern, the first-component text "!" <bcp14>SHALL</bcp14> be treated as the LocalNode number in accordance with <xref section="3.4.2" target="I-D.ietf-dtn-ipn-update"/> and converted to the value 2^32 - 1.
+When encoding an IPN pattern, the LocalNode FQNN <bcp14>SHOULD</bcp14> be detected and encoded as a two-component pattern using the "!" syntax.
+          </t>
+          <t>
 There can be multiple valid ways to decompose an FQNN component containing one or more intervals, and a pattern processor <bcp14>MAY</bcp14> choose any one that results in the same matching logic.
 When decoding, a pattern processor does not need to keep track of how many components the original pattern used; the pattern itself always has three components as defined in <xref target="sec-pattern-ipn"/>.
           </t>
@@ -386,6 +397,7 @@ When decoding, a pattern processor does not need to keep track of how many compo
 The canonical text form of an IPN pattern <bcp14>SHALL</bcp14> use three components.
 The canonical text form <bcp14>SHALL NOT</bcp14> contain any overlapping or contiguous intervals.
 The canonical text form <bcp14>SHALL</bcp14> order all intervals in ascending numeric order.
+The canonical text form <bcp14>SHALL</bcp14> encode all intervals with the lower bound before the upper bound.
           </t>
         </section>
         <section>
@@ -875,6 +887,9 @@ which has a CBOR form of:
         <section>
           <name>Normalization and Canonicalization</name>
           <t>
+These examples show normalization (altering the value while retaining its meaning) and canonicalization (altering the encoded form of the value).
+          </t>
+          <t>
 An overlapping or contiguous pattern such as one of the following
           </t>
           <sourcecode type="eidpat">
@@ -913,6 +928,31 @@ can be identified and normalized to the equivalent pattern
 ipn:977000.*.*
 </sourcecode>
           <t>
+When the FQNN is not a range and indicates the LocalNode as in either of the following
+          </t>
+          <sourcecode type="eidpat">
+ipn:4294967295.[0-10]
+ipn:0.4294967295.[0-10]
+</sourcecode>
+          <t>
+it can be canonicalized to the equivalent always-two-component pattern (in text form only)
+          </t>
+          <sourcecode type="eidpat">
+ipn:!.[0-10]
+</sourcecode>
+          <t>
+When an interval has descending bounds such as
+          </t>
+          <sourcecode type="eidpat">
+ipn:0.3.[10-0]
+</sourcecode>
+          <t>
+can be canonicalized to the equivalent pattern
+          </t>
+          <sourcecode type="eidpat">
+ipn:0.3.[0-10]
+</sourcecode>
+          <t>
 When the end of an interval is the largest value of the corresponding component, as in
           </t>
           <sourcecode type="eidpat">
@@ -922,7 +962,7 @@ ipn:977000.[10000-4294967295].*
 the last value of the last interval can be canonicalized to the pattern
           </t>
           <sourcecode type="eidpat">
-ipn:977000.[10000-max].*
+ipn:977000.[10000+].*
 </sourcecode>
           <t>
 which does not affect the information model but makes the encoded form shorter (and more understandable to a human).
@@ -958,7 +998,7 @@ ipn:[4196183048192100-4196191638126692].*
 which is decomposed into one possible equivalent pattern
           </t>
           <sourcecode type="eidpat">
-ipn:977000.[100-max].*|ipn:977001.*.*|ipn:977002.[0-100].*
+ipn:977000.[100+].*|ipn:977001.*.*|ipn:977002.[0-100].*
 </sourcecode>
           <t>
 which has a CBOR form of:
