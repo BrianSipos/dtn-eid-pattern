@@ -43,6 +43,7 @@ FQNN
 fullssp
 IANA
 IEC
+IETF
 ipn
 IPN
 iso
