@@ -76,7 +76,7 @@ Because of its structure, used to simplify processing, the CBOR form for EID Pat
 One other aspect of this patterning mechanism is that the text form of each scheme-specific pattern is intended to be, in a subjective sense, natural and understandable for the case of a human manually typing patterns into a text document or quick email message; the interpretation of the text pattern needs to "make sense" with minimal training.
         </t>
         <t>
-In summary, current and new scheme-specific EID Pattern definitions<bcp14>SHALL</bcp14> specify all of the following:
+In summary, current and new scheme-specific EID Pattern definitions <bcp14>SHALL</bcp14> specify all of the following:
         </t>
         <ul>
           <li>A logical information model for the scheme-specific pattern.</li>
@@ -717,7 +717,16 @@ The use of these forms is defined in <xref target="sec-pkix-cert-profile"/>.
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.5050.xml"/>
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.5912.xml"/>
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.6570.xml"/>
+        <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.7942.xml"/>
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.9172.xml"/>
+        <reference anchor="github-ricktaylor-hardy" target="https://github.com/ricktaylor/hardy">
+          <front>
+            <title>BPv7 DTN server implementation</title>
+            <author fullname="Rick Taylor">
+            </author>
+            <date/>
+          </front>
+        </reference>
         <reference anchor="W3C-PAT" target="https://www.w3.org/2005/Incubator/wcl/matching.html">
           <front>
             <title>URI Pattern Matching for Groups of Resources</title>
@@ -1029,6 +1038,31 @@ and its CBOR form is:
 </sourcecode>
         </section>
       </section>
+    </section>
+    <section numbered="false" removeInRFC="true">
+      <name>Implementation Status</name>
+      <t>
+[NOTE to the RFC Editor: please remove this section before publication, as well as the reference to <xref target="RFC7942"/>, <xref target="github-ricktaylor-hardy"/>.]
+      </t>
+      <t>
+This section records the status of known implementations of the
+protocol defined by this specification at the time of posting of
+this Internet-Draft, and is based on a proposal described in
+<xref target="RFC7942"/>.
+The description of implementations in this section is
+intended to assist the IETF in its decision processes in progressing
+drafts to RFCs. Please note that the listing of any individual
+implementation here does not imply endorsement by the IETF.
+Furthermore, no effort has been spent to verify the information
+presented here that was supplied by IETF contributors. This is not
+intended as, and must not be construed to be, a catalog of available
+implementations or their features. Readers are advised to note that
+other implementations can exist.
+      </t>
+      <t>
+A trial implementation in Rust language of the EID Pattern encoding and decoding and EID matching logic is present as part of the full BP Agent of <xref target="github-ricktaylor-hardy"/>.
+This repository includes unit test vectors for verifying pattern handling.
+      </t>
     </section>
     <section anchor="sec-doc-ack" numbered="false">
       <name>Acknowledgments</name>
