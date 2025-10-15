@@ -525,7 +525,7 @@ embed-eid-pattern = bstr .cbor eid-pattern
       </sourcecode>
       <t>
 Embedding in a byte string this way allows BP EID Pattern-unaware processors to handle it without concern for its syntax or validity.
-Using a single-item embedding ensures that the number of pattern items contained is still available to decoders in the <tt>eid-pattern</tt> array header.
+Using a single-item embedding ensures that the number of pattern items contained is still available to decoders in the <tt>eid-pattern</tt> array head.
       </t>
       <t>
 A similar recommendation is provided here for enveloping EIDs themselves, which is not discussed in <xref target="RFC9171"/> so this document does not formally update that specification.
@@ -537,7 +537,7 @@ embed-eid-structure = bstr .cbor eid-structure
       </sourcecode>
       <t>
 Embedding in a byte string this way allows BP EID-unaware processors to handle it without concern for its syntax or validity.
-Although this adds some redundancy to the encoding because the <tt>eid-structure</tt> is always a two-element array, it is limited to the single byte of the <tt>eid-structure</tt> array head.
+Although this adds some redundancy to the encoding because the <tt>eid-structure</tt> is always a two-element array, it is limited to the single byte of the its array head.
 This is also consistent with how the existing Previous Node block-type-specific data content is defined in <xref section="4.4.1" target="RFC9171"/>.
       </t>
     </section>
