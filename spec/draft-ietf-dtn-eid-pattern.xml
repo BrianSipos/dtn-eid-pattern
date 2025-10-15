@@ -6,12 +6,12 @@
  <!ENTITY nbhy   "&#8209;">
  <!ENTITY wj     "&#8288;">
 ]>
-<rfc xmlns:xi="http://www.w3.org/2001/XInclude" category="info" consensus="true" docName="draft-ietf-dtn-eid-pattern-02" ipr="trust200902" submissionType="IETF" tocInclude="true" version="3">
+<rfc xmlns:xi="http://www.w3.org/2001/XInclude" category="info" consensus="true" docName="draft-ietf-dtn-eid-pattern-03" ipr="trust200902" submissionType="IETF" tocInclude="true" version="3">
   <front>
     <title abbrev="BP EID Patterns">
 Bundle Protocol Endpoint ID Patterns
     </title>
-    <seriesInfo name="Internet-Draft" value="draft-ietf-dtn-eid-pattern-02"/>
+    <seriesInfo name="Internet-Draft" value="draft-ietf-dtn-eid-pattern-03"/>
     <author fullname="Brian Sipos" initials="B." surname="Sipos">
       <organization abbrev="JHU/APL">The Johns Hopkins University Applied Physics Laboratory</organization>
       <address>
@@ -524,20 +524,21 @@ This is formalized by the following CDDL.
 embed-eid-pattern = bstr .cbor eid-pattern
       </sourcecode>
       <t>
-Embedding in a byte string this allows EID-Pattern-unaware processors to handle it without concern for its syntax or validity.
+Embedding in a byte string this way allows BP EID Pattern-unaware processors to handle it without concern for its syntax or validity.
 Using a single-item embedding ensures that the number of pattern items contained is still available to decoders in the <tt>eid-pattern</tt> array header.
       </t>
       <t>
-A similar recommendation is provided here for enveloping EIDs themselves, which is not discussed in <xref target="RFC9171"/> so this document does not formally update <xref target="RFC9171"/>.
-For the binary form of EIDs, when the encoded item is not handled as a simple byte string it is <bcp14>RECOMMENDED</bcp14> to embed the EID within a CBOR byte string as a sequence.
+A similar recommendation is provided here for enveloping EIDs themselves, which is not discussed in <xref target="RFC9171"/> so this document does not formally update that specification.
+For the binary form of EIDs, when the encoded item is not handled as a simple byte string it is <bcp14>RECOMMENDED</bcp14> to embed the EID within a CBOR byte string as a single item.
 This is formalized by the following CDDL.
       </t>
       <sourcecode markers="false" type="cddl">
-embed-eid-structure = bstr .cborseq eid-structure
+embed-eid-structure = bstr .cbor eid-structure
       </sourcecode>
       <t>
-Because the <tt>eid-structure</tt> is always a two-element array, there is no additional information provided by the array header so in this case it is elided for a more compact encoding.
-In fact, for IPN-scheme EIDs this byte string embedding is guaranteed not to exceed size of the normal (array item) CBOR encoding.
+Embedding in a byte string this way allows BP EID-unaware processors to handle it without concern for its syntax or validity.
+Although this adds some redundancy to the encoding because the <tt>eid-structure</tt> is always a two-element array, it is limited to the single byte of the <tt>eid-structure</tt> array head.
+This is also consistent with how the existing Previous Node block-type-specific data content is defined in <xref section="4.4.1" target="RFC9171"/>.
       </t>
     </section>
     <section anchor="sec-security">
