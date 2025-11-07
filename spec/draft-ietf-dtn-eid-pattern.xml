@@ -6,7 +6,7 @@
  <!ENTITY nbhy   "&#8209;">
  <!ENTITY wj     "&#8288;">
 ]>
-<rfc xmlns:xi="http://www.w3.org/2001/XInclude" category="info" consensus="true" docName="draft-ietf-dtn-eid-pattern-03" ipr="trust200902" submissionType="IETF" tocInclude="true" version="3">
+<rfc xmlns:xi="http://www.w3.org/2001/XInclude" category="info" consensus="true" docName="draft-ietf-dtn-eid-pattern-03" ipr="trust200902" sortRefs="false" symRefs="true" submissionType="IETF" tocInclude="true" updates="9174,dtn-bpsec-cose" version="3">
   <front>
     <title abbrev="BP EID Patterns">
 Bundle Protocol Endpoint ID Patterns
@@ -106,7 +106,7 @@ It is an implementation matter for a BP Agent to use EID Patterns with BP Versio
       <section>
         <name>Use of ABNF</name>
         <t>
-This document defines text structure using the Augmented Backus-Naur Form (ABNF) of <xref target="RFC5234"/>.
+This document defines text structure using the Augmented Backus-Naur Form (ABNF) syntax <xref target="RFC5234"/>.
 The entire ABNF structure can be extracted from the XML version of this document using the XPath expression:
         </t>
         <sourcecode>'//sourcecode[@type="abnf"]'</sourcecode>
@@ -121,9 +121,9 @@ multi-wildcard = "**"
 non-zero-decimal = (%x31-39 *DIGIT)
         </sourcecode>
         <t>
-From the document <xref target="RFC3986"/> the definition is taken for <tt>pchar</tt> and <tt>scheme</tt>.
-From the document <xref target="RFC5234"/> the definition is taken for <tt>digit</tt>.
-From the document <xref target="RFC9171"/> the definition is taken for <tt>nbr-delim</tt>.
+The definitions for the rules <tt>pchar</tt> and <tt>scheme</tt> are taken from URI <xref target="RFC3986"/>.
+The definition for the rule <tt>digit</tt> is taken from ABNF <xref target="RFC5234"/>.
+The definition for the rule <tt>nbr-delim</tt> is taken from BP <xref target="RFC9171"/>.
         </t>
       </section>
       <section>
@@ -134,13 +134,13 @@ The entire CDDL structure can be extracted from the XML version of this document
         </t>
         <sourcecode>'//sourcecode[@type="cddl"]'</sourcecode>
         <t>
-The following initial fragment defines the top-level rules of this document's CDDL, which includes the example CBOR content.
+The following initial fragment defines the top-level rules of this document's CDDL, which includes rules needed for validating the example CBOR content.
         </t>
         <sourcecode type="cddl">
 start = eid-pattern / embed-eid-pattern
         </sourcecode>
         <t>
-From the document <xref target="RFC9171"/> the definition is taken for <tt>eid-structure</tt>.
+The definition for the rule <tt>eid-structure</tt> is taken from BP <xref target="RFC9171"/>.
         </t>
       </section>
       <section anchor="sec-terminology">
@@ -274,7 +274,7 @@ example:**|65536:**
       <section anchor="sec-pattern-ipn">
         <name>IPN Scheme Pattern Item</name>
         <t>
-As defined in <xref section="4.2.5.1.2" target="RFC9171"/> and updated in <xref target="I-D.ietf-dtn-ipn-update"/>, IPN scheme EIDs have a SSP which is logically divided into three integer numeric components.
+As defined in <xref section="4.2.5.1.2" target="RFC9171"/> and updated in <xref section="3" target="RFC9758"/>, IPN scheme EIDs have a SSP which is logically divided into three integer numeric components.
 Because of this, the pattern for IPN scheme EIDs is based on matching a numeric value or range for each component.
         </t>
         <t>
@@ -346,7 +346,7 @@ Likewise, one IPN pattern is a subset (or proper subset) of another pattern if a
         <section>
           <name>Text Form</name>
           <t>
-The text form of the IPN pattern conforms to the ABNF in <xref target="fig-pattern-ipn-text"/>, which is a superset of the IPN scheme itself as defined in <xref section="4.1" target="I-D.ietf-dtn-ipn-update"/> but with a different structure.
+The text form of the IPN pattern conforms to the ABNF in <xref target="fig-pattern-ipn-text"/>, which is a superset of the IPN scheme itself as defined in <xref section="4" target="RFC9758"/> but with a different structure.
 Each component is separated by the same character "." as in the IPN URI scheme.
 This pattern uses reserved URI characters of "[" and "]" (see <xref section="2.2" target="RFC3986"/>) to indicate the presence of a range set for a component, the character "," to separate the intervals of a range, the character "-" to indicate an interval within the set, and the character "+" to indicate a half-open interval.
           </t>
@@ -385,8 +385,8 @@ ipn-interval = ipn-decimal [ ("-" ipn-decimal) / "+" ]
 </sourcecode>
           </figure>
           <t>
-When decoding a two-component IPN pattern, the first component <bcp14>SHALL</bcp14> be treated as a fully-qualified node number (FQNN) in accordance with <xref section="3.3.1" target="I-D.ietf-dtn-ipn-update"/> and decomposed into separate allocator and node number components.
-When decoding a two-component IPN pattern, the first-component text "!" <bcp14>SHALL</bcp14> be treated as the LocalNode FQNN (0,2^32 - 1) in accordance with <xref section="3.4.2" target="I-D.ietf-dtn-ipn-update"/>.
+When decoding a two-component IPN pattern, the first component <bcp14>SHALL</bcp14> be treated as a fully-qualified node number (FQNN) in accordance with <xref section="3.3.1" target="RFC9758"/> and decomposed into separate allocator and node number components.
+When decoding a two-component IPN pattern, the first-component text "!" <bcp14>SHALL</bcp14> be treated as the LocalNode FQNN tuple (0, 2^32 - 1) in accordance with <xref section="3.4.2" target="RFC9758"/>.
 When encoding an IPN pattern, the (non-range, non-wildcard) LocalNode FQNN <bcp14>SHOULD</bcp14> be detected and encoded as a two-component pattern using the "!" syntax.
           </t>
           <t>
@@ -619,43 +619,6 @@ The formal structure of the associated other name form is in <xref target="sec-a
 The use of this form is defined in <xref target="sec-pkix-cert-profile"/>.
         </t>
       </section>
-      <section>
-        <name>C509 General Names Registry</name>
-        <t>
-IANA has created, under the "CBOR Encoded X.509 (C509) Parameters" registry group <xref target="IANA-C509"/>, a registry titled "C509 General Names Registry".
-This general names table is updated to include a row for BP Endpoint ID Pattern with the following parameters.
-        </t>
-        <dl newline="true">
-          <dt>Label:</dt>
-          <dd><cref>-TBA2</cref></dd>
-          <dt>Name:</dt>
-          <dd>otherName with BundleEIDPattern</dd>
-          <dt>Comments:</dt>
-          <dd>id-on-bundleEIDPattern (1.3.6.1.5.5.7.8.<cref>ON-TBA</cref>) 06&nbsp;08&nbsp;2B&nbsp;06&nbsp;01&nbsp;05&nbsp;05&nbsp;07&nbsp;08&nbsp;<cref>ON-TBA</cref></dd>
-          <dt>Value:</dt>
-          <dd><tt>embed-eid-pattern</tt> (from [this specification])</dd>
-        </dl>
-        <t>
-This general names table is updated to include a row for BP Endpoint ID with the following parameters.
-        </t>
-        <dl newline="true">
-          <dt>Label:</dt>
-          <dd><cref>-TBA1</cref></dd>
-          <dt>Name:</dt>
-          <dd>otherName with BundleEID</dd>
-          <dt>Comments:</dt>
-          <dd>id-on-bundleEID (1.3.6.1.5.5.7.8.11) 06&nbsp;08&nbsp;2B&nbsp;06&nbsp;01&nbsp;05&nbsp;05&nbsp;07&nbsp;08&nbsp;0B</dd>
-          <dt>Value:</dt>
-          <dd><tt>embed-eid-structure</tt> (from [this specification])</dd>
-        </dl>
-        <t>
-Both of these code points can be used in a C509 certificate to create a more concise encoding of the same Other Name value than the general form defined in <xref section="3.3" target="I-D.ietf-cose-cbor-encoded-cert"/> which uses an OID to identify the Other Name Form and ASN.1 encoded text form of EID and EID Pattern.
-These code points are purely to enable smaller encodings, an EID-unaware certificate processor can still use the longer general (ASN.1) encoding of these other name forms and not lose any information.
-        </t>
-        <t>
-The use of these forms is defined in <xref target="sec-pkix-cert-profile"/>.
-        </t>
-      </section>
     </section>
   </middle>
   <back>
@@ -666,14 +629,6 @@ The use of these forms is defined in <xref target="sec-pkix-cert-profile"/>.
         <reference anchor="IANA-BP" target="https://www.iana.org/assignments/bundle/">
           <front>
             <title>Bundle Protocol</title>
-            <author>
-              <organization>IANA</organization>
-            </author>
-          </front>
-        </reference>
-        <reference anchor="IANA-C509" target="#TBA">
-          <front>
-            <title>CBOR Encoded X.509 (C509) Parameters</title>
             <author>
               <organization>IANA</organization>
             </author>
@@ -697,8 +652,7 @@ The use of these forms is defined in <xref target="sec-pkix-cert-profile"/>.
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.9171.xml"/>
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.9174.xml"/>
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.9525.xml"/>
-        <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml3/reference.I-D.ietf-dtn-ipn-update.xml"/>
-        <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml3/reference.I-D.ietf-cose-cbor-encoded-cert.xml"/>
+        <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.9758.xml"/>
         <reference anchor="X.680" target="https://www.itu.int/rec/T-REC-X.680-201508-I/en">
           <front>
             <title>Information technology -- Abstract Syntax Notation One (ASN.1): Specification of basic notation</title>
@@ -745,10 +699,10 @@ This specification uses the ASN.1 definitions from <xref target="RFC5912"/> with
       </t>
       <sourcecode markers="true" type="asn.1">
 
-DTN-EIDPATTERN-2023
+DTN-EIDPATTERN-2025
   { iso(1) identified-organization(3) dod(6)
     internet(1) security(5) mechanisms(5) pkix(7) id-mod(0)
-    id-mod-dtn-eidpattern-2023(MOD-TBA) }
+    id-mod-dtn-eidpattern-2025(MOD-TBA) }
 
 DEFINITIONS IMPLICIT TAGS ::=
 BEGIN
