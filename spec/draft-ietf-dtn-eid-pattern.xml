@@ -6,12 +6,12 @@
  <!ENTITY nbhy   "&#8209;">
  <!ENTITY wj     "&#8288;">
 ]>
-<rfc xmlns:xi="http://www.w3.org/2001/XInclude" category="info" consensus="true" docName="draft-ietf-dtn-eid-pattern-03" ipr="trust200902" sortRefs="false" symRefs="true" submissionType="IETF" tocInclude="true" updates="9174,dtn-bpsec-cose" version="3">
+<rfc xmlns:xi="http://www.w3.org/2001/XInclude" category="info" consensus="true" docName="draft-ietf-dtn-eid-pattern-04" ipr="trust200902" sortRefs="false" symRefs="true" submissionType="IETF" tocInclude="true" updates="9174,dtn-bpsec-cose" version="3">
   <front>
     <title abbrev="BP EID Patterns">
 Bundle Protocol Endpoint ID Patterns
     </title>
-    <seriesInfo name="Internet-Draft" value="draft-ietf-dtn-eid-pattern-03"/>
+    <seriesInfo name="Internet-Draft" value="draft-ietf-dtn-eid-pattern-04"/>
     <author fullname="Brian Sipos" initials="B." surname="Sipos">
       <organization abbrev="JHU/APL">The Johns Hopkins University Applied Physics Laboratory</organization>
       <address>
@@ -1048,8 +1048,8 @@ This repository includes unit test vectors for verifying pattern handling.
     <section anchor="sec-doc-ack" numbered="false">
       <name>Acknowledgments</name>
       <t>
-Pattern expressiveness is based on use case examples provided by Carlo Caini and Lucien Loiseau.
-Prototyping of and validation for the utility of these patterns was performed by Rick Taylor.
+Pattern expressiveness is based on use case examples provided by <contact fullname="Carlo Caini"/> and <contact fullname="Lucien Loiseau"/>.
+Prototyping of and validation for the utility of these patterns was performed by <contact fullname="Rick Taylor"/>.
       </t>
     </section>
   </back>
