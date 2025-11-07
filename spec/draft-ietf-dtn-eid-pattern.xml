@@ -43,11 +43,11 @@ This document also defines a Public Key Infrastructure Using X.509 (PKIX) Other 
     <section anchor="sec-intro">
       <name>Introduction</name>
       <t>
-The Bundle Protocol (BP) Version 7 specification of <xref target="RFC9171"/> defines Uniform Resource Identifier (URI) text and Concise Binary Object Representation (CBOR) binary encoding forms of an Endpoint ID (EID). The EID is used as both a source and a destination for individual bundles as well as a destination for status reports. In addition to the base protocol, the BP Security specification of <xref target="RFC9172"/> uses EIDs as security sources and the TCP Convergence Layer (TCPCL) of <xref target="RFC9174"/> uses EIDs for peer identification.
+The Bundle Protocol (BP) Version 7 specification <xref target="RFC9171"/> defines Uniform Resource Identifier (URI) text and Concise Binary Object Representation (CBOR) binary encoding forms of an Endpoint ID (EID). An EID value is used as both a source and a destination for individual Bundles among other uses in BP. In addition to the base protocol, the BP Security (BPSec) specification <xref target="RFC9172"/> uses an EID for security source identity and the TCP Convergence Layer (TCPCL) <xref target="RFC9174"/> uses an EID value for peer identity.
 BP Agent implementations have necessarily used methods of defining patterns for matching multiple EIDs in order to configure routing, forwarding, and delivery of bundles, security policy, and convergence layer policy, but these have not yet been standardized and do not have a concise form suitable for on-the-wire messaging.
       </t>
       <t>
-In much the same way that the Classless Inter-domain Routing (CIDR) mechanism of <xref target="RFC4632"/> can be used to aggregate a contiguous and bit-aligned block of IP addresses in a concise unit (encoded as text or otherwise), this concept of EID Pattern is used to aggregate a set of EIDs into a single concise unit.
+In much the same way that the Classless Inter-domain Routing (CIDR) mechanism <xref target="RFC4632"/> can be used to aggregate a contiguous and bit-aligned block of IP addresses in a concise unit (encoded as text or otherwise), this concept of EID Pattern is used to aggregate a set of EIDs into a single concise unit.
 This is valuable because an EID includes both an identifier of the node sending or receiving the bundle as well as an identifier for the specific service which generated or will process the bundle.
 Any EID Pattern can be used both to aggregate EIDs based on node identifier, service identifier, or both.
       </t>
@@ -55,14 +55,14 @@ Any EID Pattern can be used both to aggregate EIDs based on node identifier, ser
 A purely text-based pattern mechanism such as <xref target="W3C-PAT"/> could handle the general case of matching the text form of EIDs (as URIs) but would not be able to achieve the same level of encoding compression and would not be able to express of exact numeric ranges like the scheme-specific mechanism defined in this document.
       </t>
       <t>
-The certificate profile and NODE-ID definition of <xref target="RFC9174"/> uses the text form of EID to authenticate nodes based on EID.
+The certificate profile and NODE-ID definition of TCPCL <xref target="RFC9174"/> uses the text form of EID to authenticate nodes based on EID.
 This document defines a Public Key Infrastructure Using X.509 (PKIX) Other Name Form to contain an EID Pattern and a handling rule to use a pattern to match an EID.
 This allows authenticating an individual EID based on an EID Pattern in much the same way as using a "wildcard" certificate to match a DNS name (see <xref section="6.3" target="RFC9525"/>).
       </t>
       <section anchor="sec-goals">
         <name>Goals</name>
         <t>
-The text form of an EID Pattern defined in <xref target="sec-eid-pattern"/> is <em>not</em> a URI and is not bound by the character set restrictions imposed in <xref target="RFC3986"/>.
+The text form of an EID Pattern defined in <xref target="sec-eid-pattern"/> is <em>not</em> a URI and is not bound by the character set restrictions imposed for an encoded URI <xref target="RFC3986"/>.
 This is much the same as a URI template <xref target="RFC6570"/> is also not itself a URI.
 Although some forms of EID Pattern can contain reserved URI characters, it is not guaranteed that any particular EID Pattern will be intrinsically differentiable from an EID.
 See <xref target="sec-security"/> for details on handling concerns.
@@ -129,7 +129,7 @@ The definition for the rule <tt>nbr-delim</tt> is taken from BP <xref target="RF
       <section>
         <name>Use of CDDL</name>
         <t>
-This document defines CBOR structure using the Concise Data Definition Language (CDDL) of <xref target="RFC8610"/>.
+This document defines CBOR structure using the Concise Data Definition Language (CDDL) syntax <xref target="RFC8610"/>.
 The entire CDDL structure can be extracted from the XML version of this document using the XPath expression:
         </t>
         <sourcecode>'//sourcecode[@type="cddl"]'</sourcecode>
@@ -481,7 +481,7 @@ URI matching of an EID-PATTERN-ID <bcp14>SHALL</bcp14> use the scheme-specific E
 An EID Pattern scheme can refine this matching logic with rules regarding how Endpoint IDs within that scheme are to be compared with the issued EID-PATTERN-ID.
         </t>
         <t>
-As an augmentation of <xref section="4.4.2" target="RFC9174"/>:
+As an augmentation of the TCPCL certificate profile in <xref section="4.4.2" target="RFC9174"/>:
 Unless prohibited by CA policy, a TCPCL end-entity certificate <bcp14>SHALL</bcp14> contain either a NODE-ID or an EID-PATTERN-ID that authenticates the node ID of the peer.
 All other requirements of that certificate profile are unchanged by this document.
         </t>
@@ -494,7 +494,7 @@ Because the EID Pattern does not define a general-purpose subset logic, a Name C
 It is instead used to constrain the ultimate identity validation (see <xref section="6" target="RFC9525"/> and <xref section="4.4.4" target="RFC9174"/>) for Node IDs specifically and any future validation of EIDs more generally as defined below.
         </t>
         <t>
-As an augmentation of <xref section="4.4.4.3" target="RFC9174"/>:
+As an augmentation of the TCPCL peer authentication in <xref section="4.4.4.3" target="RFC9174"/>:
 When performing a validation of a Node ID against an end entity certificate with NODE-ID or EID-PATTERN-ID, the validation <bcp14>SHALL</bcp14> also validate the Node ID based on all of the CA certificates in the path which contain a Name Constraints extension itself containing an Other Name Form of <tt>id-on-bundleEIDPattern</tt>.
 That match <bcp14>SHALL</bcp14> consider both the permitted and excluded subtrees of the Name Constraints in accordance with <xref section="4.2.1.10" target="RFC5280"/>.
         </t>
@@ -528,7 +528,7 @@ Embedding in a byte string this way allows BP EID Pattern-unaware processors to 
 Using a single-item embedding ensures that the number of pattern items contained is still available to decoders in the <tt>eid-pattern</tt> array head.
       </t>
       <t>
-A similar recommendation is provided here for enveloping EIDs themselves, which is not discussed in <xref target="RFC9171"/> so this document does not formally update that specification.
+A similar recommendation is provided here for enveloping EIDs themselves, which is not discussed in BP <xref target="RFC9171"/> so this document does not formally update that specification.
 For the binary form of EIDs, when the encoded item is not handled as a simple byte string it is <bcp14>RECOMMENDED</bcp14> to embed the EID within a CBOR byte string as a single item.
 This is formalized by the following CDDL.
       </t>
@@ -694,8 +694,8 @@ The use of this form is defined in <xref target="sec-pkix-cert-profile"/>.
     <section anchor="sec-asn1-mod">
       <name>ASN.1 Module</name>
       <t>
-The following ASN.1 module formally specifies the <tt>BundleEIDPattern</tt> structure and its Other Name form in the syntax of <xref target="X.680"/>.
-This specification uses the ASN.1 definitions from <xref target="RFC5912"/> with the 2002 ASN.1 notation used in that document.
+The following module formally specifies the <tt>BundleEIDPattern</tt> structure and its Other Name form in the syntax of ASN.1 <xref target="X.680"/>.
+This specification uses the ASN.1 definitions from PKIX <xref target="RFC5912"/> with the 2002 ASN.1 notation used in that document.
       </t>
       <sourcecode markers="true" type="asn.1">
 
@@ -1041,7 +1041,7 @@ implementations or their features. Readers are advised to note that
 other implementations can exist.
       </t>
       <t>
-A trial implementation in Rust language of the EID Pattern encoding and decoding and EID matching logic is present as part of the full BP Agent of <xref target="github-ricktaylor-hardy"/>.
+A trial implementation in Rust language of the EID Pattern encoding and decoding and EID matching logic is present as part of the full BP Agent of Hardy <xref target="github-ricktaylor-hardy"/>.
 This repository includes unit test vectors for verifying pattern handling.
       </t>
     </section>
