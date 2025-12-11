@@ -422,11 +422,12 @@ The wildcard sentinel values have no intrinsic meaning and were simply chosen to
 The encoding of ranges is a compressed form in which each pair of values in the range indicates:
           </t>
           <ol>
-            <li>The non-zero offset from the previous one-past-end-of-range, or the offset from zero if there is no preceding range.</li>
-            <li>The length of this range, which is inclusive of the first and last contained value so will always be non-zero, or the <tt>null</tt> value if the length extends to the largest value for that component.</li>
+            <li>The least included value if present in the first pair or the width of the excluded interval (after the previous included interval) for later pairs.</li>
+            <li>The width of this included interval or the <tt>null</tt> value if the interval extends to the largest value for that component (which means it only applies to the last pair).</li>
           </ol>
           <t>
-Another way to interpret these pairs is that each number indicates the length of alternating "excluded" and "included" intervals for the range.
+The "width" in these intervals is defined as the difference between the first and last value in the interval, meaning a zero-width interval contains exactly one value.
+Another way to interpret the range array is that each number after the first (least) value indicates the width of alternating "excluded" and "included" intervals for the range.
           </t>
           <figure anchor="fig-pattern-ipn-cbor">
             <name>IPN Pattern CDDL Schema</name>
@@ -440,15 +441,26 @@ ipn-ssp = [
 ]
 ipn-part-pat = uint / ipn-range / true
 
-ipn-range = [ 1* ipn-interval-pair ]
-ipn-interval-pair = (
-  ; only the first interval offset can be zero
-  offset: uint,
-  ; only the last interval length can be null
-  length: (uint .gt 0) / null,
-)
+ipn-range = [
+  ; least included value
+  least: uint,
+  ; width of included interval
+  incl: ipn-width,
+  * (
+    ; width of excluded interval
+    excl: ipn-width,
+    ; width of included interval
+    incl: ipn-width / null
+  )
+]
+ipn-width = uint
 </sourcecode>
           </figure>
+          <t>
+The most simple range is a single value, for example the value 10 can be encoded as the range <tt>[10,0]</tt> (which is a special case because this can also use the non-range specific value encoding).
+The most simple disjoint range containing the values 2,4 is encoded as the range <tt>[2,0,0,0]</tt> because each included interval is width zero and each excluded between them is also width zero.
+The largest possible range covering the entire 64-bit number space can be encoded as the range <tt>[0,0xFFFFFFFFFFFFFFFF]</tt> or the more concise form of <tt>[0,null]</tt> with the same meaning.
+          </t>
         </section>
       </section>
     </section>
@@ -609,7 +621,7 @@ This other name forms table is updated to include a row for containing an Endpoi
           <tbody>
             <tr>
               <td>ON-TBA</td>
-              <td>id-on-bundleEIDPattern</td>
+              <td><tt>id-on-bundleEIDPattern</tt></td>
               <td>[This specification]</td>
             </tr>
           </tbody>
@@ -798,7 +810,7 @@ ipn:0.3.[0-19]
 which has a CBOR form of:
           </t>
           <sourcecode type="cbor">
-[[2, [0, 3, [0, 20]]]]
+[[2, [0, 3, [0, 19]]]]
 </sourcecode>
           <t>
 This example includes an offset range over the service numbers <tt>ipn:0.3.10</tt> to <tt>ipn:0.3.19</tt> inclusive as
@@ -810,7 +822,7 @@ ipn:0.3.[10-19]
 which has a CBOR form of:
           </t>
           <sourcecode type="cbor">
-[[2, [0, 3, [10, 10]]]]
+[[2, [0, 3, [10, 9]]]]
 </sourcecode>
           <t>
 This example includes multiple ranges of service numbers <tt>ipn:0.3.0</tt> to <tt>ipn:0.3.4</tt> and <tt>ipn:0.3.10</tt> to <tt>ipn:0.3.19</tt> inclusive as
@@ -822,7 +834,7 @@ ipn:0.3.[0-4,10-19]
 which has a CBOR form of:
           </t>
           <sourcecode type="cbor">
-[[2, [0, 3, [0, 5, 5, 10]]]]
+[[2, [0, 3, [0, 4, 4, 9]]]]
 </sourcecode>
         </section>
         <section>
@@ -927,7 +939,7 @@ ipn:977000.[100-500].*
 which has a CBOR form of:
           </t>
           <sourcecode type="cbor">
-[[2, [977000, [100, 401], true]]]
+[[2, [977000, [100, 400], true]]]
 </sourcecode>
           <t>
 The next example has a range over the FQNN which spans multiple allocator IDs between <tt>ipn:4196183048192100.*</tt> to <tt>ipn:4196191638126692.*</tt> inclusive as the pattern
@@ -948,7 +960,7 @@ which has a CBOR form of:
 [
   [2, [977000, [100, null], true]],
   [2, [977001, true, true]],
-  [2, [977002, [0, 101], true]]
+  [2, [977002, [0, 100], true]]
 ]
 </sourcecode>
           <t>
