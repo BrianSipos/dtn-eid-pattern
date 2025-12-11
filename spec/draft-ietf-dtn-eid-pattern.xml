@@ -303,7 +303,7 @@ The conceptual model of the IPN pattern is that each of the components of the SS
 Within a single component of the IPN pattern, the range intervals <bcp14>SHALL</bcp14> be disjoint and non-contiguous.
 Any overlapping or contiguity of intervals within a set can be coalesced into a single covering interval with the same meaning.
 The text form of a range can, but <bcp14>SHOULD NOT</bcp14>, contain overlapping or contiguous intervals.
-The CBOR form of a range does not allow overlapping intervals because of its compressed form, but does allow contiguous intervals.
+The CBOR form of a range does not allow overlapping or contiguous intervals because of its compressed structure.
 The decoder for any form of an IPN pattern <bcp14>SHALL</bcp14> normalize all intervals sets to satisfy information model requirements.
 The decoder for any form of an IPN pattern <bcp14>SHOULD</bcp14> treat the failure of any component of a pattern as a failure to decode the whole pattern.
         </t>
