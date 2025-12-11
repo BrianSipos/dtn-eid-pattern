@@ -307,11 +307,6 @@ The CBOR form of a range does not allow overlapping or contiguous intervals beca
 The decoder for any form of an IPN pattern <bcp14>SHALL</bcp14> normalize all intervals sets to satisfy information model requirements.
 The decoder for any form of an IPN pattern <bcp14>SHOULD</bcp14> treat the failure of any component of a pattern as a failure to decode the whole pattern.
         </t>
-        <t>
-A limitation of this mechanism is that there is no intermediate component pattern between a specific set of finite intervals and the match-all (unbounded) wildcard.
-There is no capability of including an non-finite bounds within any interval.
-But the components of the IPN scheme itself have finite bounds so a range can be made to capture component values up to and including the EID component bound.
-        </t>
         <section>
           <name>EID Matching</name>
           <t>
@@ -348,7 +343,7 @@ Likewise, one IPN pattern is a subset (or proper subset) of another pattern if a
           <t>
 The text form of the IPN pattern conforms to the ABNF in <xref target="fig-pattern-ipn-text"/>, which is a superset of the IPN scheme itself as defined in <xref section="4" target="RFC9758"/> but with a different structure.
 Each component is separated by the same character "." as in the IPN URI scheme.
-This pattern uses reserved URI characters of "[" and "]" (see <xref section="2.2" target="RFC3986"/>) to indicate the presence of a range set for a component, the character "," to separate the intervals of a range, the character "-" to indicate an interval within the set, and the character "+" to indicate a half-open interval.
+This pattern uses reserved URI characters of "[" and "]" (see <xref section="2.2" target="RFC3986"/>) to indicate the presence of a range set for a component, the character "," to separate the intervals of a range, the character "-" to indicate an interval within the set, and the character "+" to indicate a half-finite interval.
           </t>
           <t>
 The enveloping characters "[" and "]" <bcp14>SHALL</bcp14> indicate the presence of a range of possible values for that component.
@@ -358,7 +353,8 @@ The presence of a completely empty interval (<em>e.g.</em>, "[]" or "[,3]") is d
 If an interval contains a single numeric value it <bcp14>SHALL</bcp14> be treated is a length-one range.
 If an interval contains two numeric values separated by a "-" character, the interval <bcp14>SHALL</bcp14> be treated as inclusive of both values.
 The lower bound of the interval is expected be on the left side of the "-" separator, but decoders <bcp14>SHALL</bcp14> handle both possible orderings of interval bounds.
-If an interval contains a single numeric value followed by the half-open "+" character it <bcp14>SHALL</bcp14> be treated as having the lower bound of that value and the upper bound as the largest value for that component.
+If an interval contains a single numeric value followed by the half-finite "+" character it <bcp14>SHALL</bcp14> be treated as having the lower bound of that value and the upper bound as the largest value for that component.
+When encoding an interval, if its last included value is the largest value for that component the shortened half-finite form <bcp14>SHALL</bcp14> be used.
           </t>
           <aside>
             <t>
@@ -419,15 +415,19 @@ Each of the IPN pattern components <bcp14>SHALL</bcp14> be CBOR encoded as follo
           </dl>
           <t>
 The wildcard sentinel values have no intrinsic meaning and were simply chosen to be one-octet-encoded special items.
-The encoding of ranges is a compressed form in which each pair of values in the range indicates:
+The encoding of ranges is a compressed form in which each logical pair of values in the range array indicates:
           </t>
           <ol>
             <li>The least included value if present in the first pair or the width of the excluded interval (after the previous included interval) for later pairs.</li>
-            <li>The width of this included interval or the <tt>null</tt> value if the interval extends to the largest value for that component (which means it only applies to the last pair).</li>
+            <li>The width of this included interval, which is omitted if the last interval extends to the largest value for that component (which means it only applies to the last pair).</li>
           </ol>
           <t>
 The "width" in these intervals is defined as the difference between the first and last value in the interval, meaning a zero-width interval contains exactly one value.
 Another way to interpret the range array is that each number after the first (least) value indicates the width of alternating "excluded" and "included" intervals for the range.
+          </t>
+          <t>
+For the compressed form of indicating a half-finite last included interval, a definite-length array head can be used as an early hint because the number of array items will be even when the last interval has an explicit width and odd when it does not.
+When encoding a range, if its last included value is the largest value for that component the shortened half-finite form <bcp14>SHALL</bcp14> be used.
           </t>
           <figure anchor="fig-pattern-ipn-cbor">
             <name>IPN Pattern CDDL Schema</name>
@@ -444,14 +444,15 @@ ipn-part-pat = uint / ipn-range / true
 ipn-range = [
   ; least included value
   least: uint,
-  ; width of included interval
-  incl: ipn-width,
   * (
+    ; width of included interval
+    incl: ipn-width
     ; width of excluded interval
     excl: ipn-width,
-    ; width of included interval
-    incl: ipn-width / null
-  )
+  ),
+  ; Width of last included interval or
+  ; an implicit half-finite last included interval
+  ? incl: ipn-width
 ]
 ipn-width = uint
 </sourcecode>
@@ -459,7 +460,7 @@ ipn-width = uint
           <t>
 The most simple range is a single value, for example the value 10 can be encoded as the range <tt>[10,0]</tt> (which is a special case because this can also use the non-range specific value encoding).
 The most simple disjoint range containing the values 2,4 is encoded as the range <tt>[2,0,0,0]</tt> because each included interval is width zero and each excluded between them is also width zero.
-The largest possible range covering the entire 64-bit number space can be encoded as the range <tt>[0,0xFFFFFFFFFFFFFFFF]</tt> or the more concise form of <tt>[0,null]</tt> with the same meaning.
+The largest possible range covering the entire 64-bit number space can be encoded as the range <tt>[0,0xFFFFFFFFFFFFFFFF]</tt> or the more concise form of <tt>[0]</tt> with the same meaning (and even this is a special case because this can also be represented by the wildcard value <tt>true</tt>).
           </t>
         </section>
       </section>
@@ -958,7 +959,7 @@ which has a CBOR form of:
           </t>
           <sourcecode type="cbor">
 [
-  [2, [977000, [100, null], true]],
+  [2, [977000, [100], true]],
   [2, [977001, true, true]],
   [2, [977002, [0, 100], true]]
 ]
