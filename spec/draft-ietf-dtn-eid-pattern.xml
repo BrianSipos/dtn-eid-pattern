@@ -150,7 +150,14 @@ The key words "<bcp14>MUST</bcp14>", "<bcp14>MUST NOT</bcp14>", "<bcp14>REQUIRED
         </t>
         <t>
 The terms "Endpoint" and "Endpoint ID" in this document refer to the meanings defined in <xref section="3.1" target="RFC9171"/>.
+Other terms specific to this document are the following.
         </t>
+        <dl>
+          <dt>Normalize:</dt>
+          <dd>This means to change a pattern value while retaining its meaning, for example enforcing logic like case-insensitivity. The internal representation of a pattern is expected to be normalized, even if an encoded value (<em>e.g.</em>, human-input text form) is not.</dd>
+          <dt>Canonicalize:</dt>
+          <dd>This means to choose a specific encoded form of a pattern value without changing the represented logical value, for example using a preferred ordering. The text form of encoding has more canonicalization options than the binary form, and human-input text form is expected to not always use canonical choices.</dd>
+        </dl>
       </section>
     </section>
     <section anchor="sec-eid-pattern">
@@ -284,9 +291,9 @@ For the remainder of this document, the term "IPN pattern" is used as shorthand 
 An IPN pattern <bcp14>SHALL</bcp14> logically contain exactly three components corresponding to the IPN scheme EID components of:
         </t>
         <ol>
-          <li>Allocator Identifier</li>
-          <li>Node Number</li>
-          <li>Service Number</li>
+          <li>Allocator Identifier, with domain 0 to 2^32-1 inclusive</li>
+          <li>Node Number, with domain 0 to 2^32-1 inclusive</li>
+          <li>Service Number, with domain 0 to 2^64-1 inclusive</li>
         </ol>
         <t>
 The conceptual model of the IPN pattern is that each of the components of the SSP can be matched as one of:
@@ -304,7 +311,8 @@ Within a single component of the IPN pattern, the range intervals <bcp14>SHALL</
 Any overlapping or contiguity of intervals within a set can be coalesced into a single covering interval with the same meaning.
 The text form of a range can, but <bcp14>SHOULD NOT</bcp14>, contain overlapping or contiguous intervals.
 The CBOR form of a range does not allow overlapping or contiguous intervals because of its compressed structure.
-The decoder for any form of an IPN pattern <bcp14>SHALL</bcp14> normalize all intervals sets to satisfy information model requirements.
+Within a single component of the IPN pattern, any range interval that includes values outside the component domain <bcp14>SHALL</bcp14> be ignored and removed.
+The decoder for any form of an IPN pattern <bcp14>SHALL</bcp14> normalize all interval sets to satisfy information model requirements.
 The decoder for any form of an IPN pattern <bcp14>SHOULD</bcp14> treat the failure of any component of a pattern as a failure to decode the whole pattern.
         </t>
         <section>
@@ -354,14 +362,8 @@ If an interval contains a single numeric value it <bcp14>SHALL</bcp14> be treate
 If an interval contains two numeric values separated by a "-" character, the interval <bcp14>SHALL</bcp14> be treated as inclusive of both values.
 The lower bound of the interval is expected be on the left side of the "-" separator, but decoders <bcp14>SHALL</bcp14> handle both possible orderings of interval bounds.
 If an interval contains a single numeric value followed by the half-finite "+" character it <bcp14>SHALL</bcp14> be treated as having the lower bound of that value and the upper bound as the largest value for that component.
-When encoding an interval, if its last included value is the largest value for that component the shortened half-finite form <bcp14>SHALL</bcp14> be used.
+When encoding an interval, if its last included value is the largest value for that component the canonical half-finite form <bcp14>SHALL</bcp14> be used.
           </t>
-          <aside>
-            <t>
-The Allocator Identifier and Node Number components each have a largest value of 2^32 - 1.
-The FQNN and Service Number components each have a largest value of 2^64 - 1.
-            </t>
-          </aside>
           <figure anchor="fig-pattern-ipn-text">
             <name>IPN Pattern ABNF Schema</name>
             <sourcecode markers="false" type="abnf">
@@ -385,6 +387,11 @@ When decoding a two-component IPN pattern, the first component <bcp14>SHALL</bcp
 When decoding a two-component IPN pattern, the first-component text "!" <bcp14>SHALL</bcp14> be treated as the LocalNode FQNN tuple (0, 2^32 - 1) in accordance with <xref section="3.4.2" target="RFC9758"/>.
 When encoding an IPN pattern, the (non-range, non-wildcard) LocalNode FQNN <bcp14>SHOULD</bcp14> be detected and encoded as a two-component pattern using the "!" syntax.
           </t>
+          <aside>
+            <t>
+The FQNN in two-component form has a domain of 0 to 2^64 - 1 inclusive.
+            </t>
+          </aside>
           <t>
 There can be multiple valid ways to decompose an FQNN component containing one or more intervals, and a pattern processor <bcp14>MAY</bcp14> choose any one that results in the same matching logic.
 When decoding, a pattern processor does not need to keep track of how many components the original pattern used; the pattern itself always has three components as defined in <xref target="sec-pattern-ipn"/>.
@@ -423,11 +430,7 @@ The encoding of ranges is a compressed form in which each logical pair of values
           </ol>
           <t>
 The "width" in these intervals is defined as the difference between the first and last value in the interval, meaning a zero-width interval contains exactly one value.
-Another way to interpret the range array is that each number after the first (least) value indicates the width of alternating "excluded" and "included" intervals for the range.
-          </t>
-          <t>
-For the compressed form of indicating a half-finite last included interval, a definite-length array head can be used as an early hint because the number of array items will be even when the last interval has an explicit width and odd when it does not.
-When encoding a range, if its last included value is the largest value for that component the shortened half-finite form <bcp14>SHALL</bcp14> be used.
+Another way to interpret the range array is that each number after the first (least) value indicates the width of alternating <em>included</em> and <em>excluded</em> intervals for the range, as depicted in <xref target="fig-diag-ipn-range"/> where the width of the last included interval can be omitted (extending the interval to the whole domain).
           </t>
           <figure anchor="fig-pattern-ipn-cbor">
             <name>IPN Pattern CDDL Schema</name>
@@ -462,9 +465,25 @@ ipn-width = uint
 </sourcecode>
           </figure>
           <t>
-The most simple range is a single value, for example the value 10 can be encoded as the range <tt>[10,0]</tt> (which is a special case because this can also use the non-range specific value encoding).
-The most simple disjoint range containing the values 2,4 is encoded as the range <tt>[2,0,0,0]</tt> because each included interval is width zero and each excluded between them is also width zero.
-The largest possible range covering the entire 64-bit number space can be encoded as the range <tt>[0,0xFFFFFFFFFFFFFFFF]</tt> or the more concise form of <tt>[0]</tt> with the same meaning (and even this is a special case because this can also be represented by the wildcard value <tt>true</tt>).
+For the compressed form of indicating a half-finite last included interval, a definite-length array head can be used as an early hint because the number of array items will be even when the last interval has an explicit width and odd when it does not.
+When encoding a range, if its last included value is the largest value for that component the canonical half-finite form <bcp14>SHALL</bcp14> be used.
+          </t>
+          <figure anchor="fig-diag-ipn-range">
+            <name>IPN Range Encoding</name>
+            <artwork align="center"><![CDATA[
+     Include       Exclude       Include
+  min       max min       max min       max    value
+<..|.........|...|.........|...|.........|..>  space
+   |         |   |         |   |         |
+   |<------->|<->|<------->|<->|<------->|
+   |  width    1    width    1    width*       encoded
+ least                                         parameters
+]]></artwork>
+          </figure>
+          <t>
+The most simple finite range is a single value, for example the value 10 can be encoded as <tt>[10,0]</tt> (which is a special case because this can also use the non-range specific value encoding).
+The most simple disjoint range containing the values 2 and 4 is encoded as <tt>[2,0,0,0]</tt> because each included interval is width zero and each excluded between them is also width zero.
+The largest possible range covering the entire 64-bit number space can be encoded as <tt>[0,0xFFFFFFFFFFFFFFFF]</tt> or the more concise canonical form of <tt>[0]</tt> (and even this is a special case because this can also be represented by the wildcard value <tt>true</tt>).
           </t>
         </section>
       </section>
@@ -843,9 +862,9 @@ which has a CBOR form of:
 </sourcecode>
         </section>
         <section>
-          <name>Normalization and Canonicalization</name>
+          <name>Normalization</name>
           <t>
-These examples show normalization (altering the value while retaining its meaning) and canonicalization (altering the encoded form of the value).
+These examples show normalization of specific patterns.
           </t>
           <t>
 An overlapping or contiguous pattern such as one of the following
@@ -874,7 +893,19 @@ can be normalized to the equivalent pattern
 ipn:0.3.[0-4,10-19]
 </sourcecode>
           <t>
-A pattern where a range covers the same component set as a wildcard would, as in
+A pattern where a range covers more than the domain of a component, as in
+          </t>
+          <sourcecode type="eidpat">
+ipn:977000.[10000-5000000000].*
+</sourcecode>
+          <t>
+can be normalized to the equivalent (and smaller) pattern
+          </t>
+          <sourcecode type="eidpat">
+ipn:977000.[10000-4294967295].*
+</sourcecode>
+          <t>
+A pattern where a range covers the same values as a wildcard would, as in
           </t>
           <sourcecode type="eidpat">
 ipn:977000.[0-4294967295].*
@@ -885,6 +916,12 @@ can be identified and normalized to the equivalent pattern
           <sourcecode type="eidpat">
 ipn:977000.*.*
 </sourcecode>
+        </section>
+        <section>
+          <name>Canonicalization</name>
+          <t>
+These examples show canonicalization of specific patterns.
+          </t>
           <t>
 When the FQNN is not a range and indicates the LocalNode as in either of the following
           </t>
