@@ -483,7 +483,7 @@ When encoding a range, if its last included value is the largest value for that 
    |         |   |         |   |         |
    |<------->|<->|<------->|<->|<------->|
    |  width    1    width    1    width*       encoded
- least                                         parameters
+least                                          fields
 ]]></artwork>
           </figure>
           <t>
