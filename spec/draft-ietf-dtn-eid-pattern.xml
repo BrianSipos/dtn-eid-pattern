@@ -437,13 +437,15 @@ $eid-pat-item /= [
   SSP: ipn-ssp
 ]
 ipn-ssp = [
+  ; This CDDL representation does not restrict to the
+  ; true domain of each component.
   3*3 ipn-part-pat,
 ]
-ipn-part-pat = uint / ipn-range / true
+ipn-part-pat = ipn-val / ipn-range / true
 
 ipn-range = [
   ; least included value
-  least: uint,
+  least: ipn-val,
   * (
     ; width of included interval
     incl: ipn-width
@@ -454,6 +456,8 @@ ipn-range = [
   ; an implicit half-finite last included interval
   ? incl: ipn-width
 ]
+
+ipn-val = uint
 ipn-width = uint
 </sourcecode>
           </figure>
