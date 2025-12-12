@@ -154,9 +154,15 @@ Other terms specific to this document are the following.
         </t>
         <dl>
           <dt>Normalize:</dt>
-          <dd>This means to change a pattern value while retaining its meaning, for example enforcing logic like case-insensitivity. The internal representation of a pattern is expected to be normalized, even if an encoded value (<em>e.g.</em>, human-input text form) is not.</dd>
+          <dd>
+This means to change a pattern value while retaining its meaning, for example enforcing logic like case-insensitivity or domain constraints.
+The internal representation of a pattern is expected to be normalized, even if an encoded value is not (<em>e.g.</em>, human-input text form).
+          </dd>
           <dt>Canonicalize:</dt>
-          <dd>This means to choose a specific encoded form of a pattern value without changing the represented logical value, for example using a preferred ordering. The text form of encoding has more canonicalization options than the binary form, and human-input text form is expected to not always use canonical choices.</dd>
+          <dd>
+This means to choose a specific encoded form of a pattern value without changing the represented logical value, for example using a preferred ordering or a compressed code point.
+The text form of encoding has more canonicalization options than the binary form, and human-input text form is expected to not always use canonical choices.
+          </dd>
         </dl>
       </section>
     </section>
