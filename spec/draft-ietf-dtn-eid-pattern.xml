@@ -8,9 +8,7 @@
 ]>
 <rfc xmlns:xi="http://www.w3.org/2001/XInclude" category="info" consensus="true" docName="draft-ietf-dtn-eid-pattern-05" ipr="trust200902" sortRefs="false" symRefs="true" submissionType="IETF" tocInclude="true" updates="9174,dtn-bpsec-cose" version="3">
   <front>
-    <title abbrev="BP EID Patterns">
-Bundle Protocol Endpoint ID Patterns
-    </title>
+    <title abbrev="BP EID Patterns">Bundle Protocol Endpoint ID Patterns</title>
     <seriesInfo name="Internet-Draft" value="draft-ietf-dtn-eid-pattern-05"/>
     <author fullname="Brian Sipos" initials="B." surname="Sipos">
       <organization abbrev="JHU/APL">The Johns Hopkins University Applied Physics Laboratory</organization>
@@ -477,19 +475,21 @@ When encoding a range, if its last included value is the largest value for that 
           <figure anchor="fig-diag-ipn-range">
             <name>IPN Range Encoding</name>
             <artwork align="center"><![CDATA[
-     Include       Exclude       Include
-  min       max min       max min       max    value
-<..|.........|...|.........|...|.........|..>  space
-   |         |   |         |   |         |
-   |<------->|<->|<------->|<->|<------->|
-   |  width    1    width    1    width*       encoded
-least                                          fields
+      _____(repeated)______
+     /                     \
+      Include       Exclude       Include
+   min       max min       max min       max    component
+ <..|.........|...|.........|...|.........|..>  space
+    |         |   |         |   |         |
+    |<------->|<->|<------->|<->|<------->|
+   /   incl     1    excl     1    incl*        encoded
+least  width         width         width        fields
 ]]></artwork>
           </figure>
           <t>
 The most simple finite range is a single value, for example the value 10 can be encoded as <tt>[10,0]</tt> (which is a special case because this can also use the non-range specific value encoding).
 The most simple disjoint range containing the values 2 and 4 is encoded as <tt>[2,0,0,0]</tt> because each included interval is width zero and each excluded between them is also width zero.
-The largest possible range covering the entire 64-bit number space can be encoded as <tt>[0,0xFFFFFFFFFFFFFFFF]</tt> or the more concise canonical form of <tt>[0]</tt> (and even this is a special case because this can also be represented by the wildcard value <tt>true</tt>).
+The largest possible range covering the entire 64-bit number space can be encoded as <tt>[0,0xFFFFFFFFFFFFFFFF]</tt> or the more concise canonical form of <tt>[0]</tt> (and even this is a special case because this can also be represented by the wildcard value <tt>true</tt>, but that is a normalization decision not a coding one).
           </t>
         </section>
       </section>
