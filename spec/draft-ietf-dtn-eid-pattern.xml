@@ -605,6 +605,9 @@ Additionally, for the IPN scheme there are numeric values that need to be handle
     </section>
     <section anchor="sec-iana">
       <name>IANA Considerations</name>
+      <t>
+This section provides guidance to the Internet Assigned Numbers Authority (IANA) regarding registration of code points in existing registries in accordance with BCP 26 <xref target="RFC8126"/>.
+      </t>
       <section anchor="sec-iana-scheme-types">
         <name>Bundle Protocol URI Scheme Types</name>
         <t>
@@ -713,6 +716,7 @@ The use of this form is defined in <xref target="sec-pkix-cert-profile"/>.
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.5912.xml"/>
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.6570.xml"/>
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.7942.xml"/>
+        <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.8126.xml"/>
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.9172.xml"/>
         <reference anchor="github-ricktaylor-hardy" target="https://github.com/ricktaylor/hardy">
           <front>
