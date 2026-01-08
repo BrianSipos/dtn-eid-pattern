@@ -7,6 +7,7 @@ BCP
 BP
 BPSec
 BPv
+bytewise
 Caini
 canonicalization
 Canonicalization
@@ -19,6 +20,7 @@ CCSDS
 cddl
 CDDL
 CIDR
+de
 delim
 delims
 demux

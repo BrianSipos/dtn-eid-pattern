@@ -153,7 +153,7 @@ Other terms specific to this document are the following.
         <dl>
           <dt>Normalize:</dt>
           <dd>
-This means to change a pattern value while retaining its meaning, for example enforcing logic like case-insensitivity or domain constraints.
+This means to change a pattern value while retaining its meaning, for example enforcing logic like de-duplication, case-insensitivity, or domain constraints.
 The internal representation of a pattern is expected to be normalized, even if an encoded value is not (<em>e.g.</em>, human-input text form).
           </dd>
           <dt>Canonicalize:</dt>
@@ -246,26 +246,20 @@ any-scheme-item = true
       <section anchor="sec-pattern-arbscheme">
         <name>Any-SSP Pattern Item</name>
         <t>
-The next most generic pattern item is one which will match any SSP within a specific URI scheme.
+The next most generic pattern item is one which will match any SSP within a specific URI scheme or set of schemes.
 This includes schemes known to the EID handler as well as schemes by enumerated integer that need not be understood by the EID handler.
         </t>
         <t>
-When an any-SSP item is present in an EID pattern, it <bcp14>SHALL</bcp14> be the only item for the associated scheme.
+As a normalization, when an any-SSP item is present in an EID pattern it <bcp14>SHALL</bcp14> be the only item for the associated schemes.
 Any other, scheme-specific items would be redundant and unnecessary when combined with the any-SSP item for that same scheme.
         </t>
         <t>
-The text form of the any-SSP pattern is the following ABNF, where the scheme part can either be a proper URI <tt>scheme</tt> or a positive integer value (valid values are restricted by the scheme registry <xref target="IANA-BP"/>).
+As a normalization, only a single any-SSP item <bcp14>SHALL</bcp14> be used to represent all any-SSP matching in a pattern.
+This avoids redundancy in encoded forms and aids in human understanding when all any-SSP matching is combined in one item.
         </t>
-        <sourcecode type="abnf">
-any-ssp-item = (scheme / non-zero-decimal) ":" multi-wildcard
-        </sourcecode>
         <t>
-The CBOR form of the any-SSP pattern is the following CDDL.
-Because this does not match the <tt>eid-structure</tt> rule, it is guaranteed to be disambiguated with any current or future scheme-specific <tt>$eid-pat-item</tt> socket uses.
+When present, the canonical ordering of pattern items <bcp14>SHALL</bcp14> place the any-SSP item at the front of the list.
         </t>
-        <sourcecode type="cddl">
-any-ssp-item = (uint .gt 0) / tstr
-        </sourcecode>
         <section>
           <name>EID Matching</name>
           <t>
@@ -275,11 +269,42 @@ For schemes which are known to the processing entity, the integer form <bcp14>SH
 For schemes which are unknown to the processing entity, the text form of the any-SSP pattern scheme <bcp14>SHALL</bcp14> be used to match text-form EIDs and the integer form of the pattern scheme <bcp14>SHALL</bcp14> be used to match CBOR-form EIDs.
           </t>
           <t>
-This means that for entities that cannot process a specific (fictional) private-use scheme with value 65536 and name "example", the following pattern will guarantee proper handling by any entity:
+This means that for entities that cannot process a specific (fictional) private-use scheme with value 65536 and name "example", the following text pattern will guarantee proper handling by any entity:
           </t>
           <sourcecode type="eidpat">
-example:**|65536:**
+[65536,example]:**
 </sourcecode>
+        </section>
+        <section anchor="sec-pattern-arbscheme-text">
+          <name>Text Form</name>
+          <t>
+The text form of the any-SSP item is the following ABNF, where the <tt>scheme-id</tt> rule can either be a proper URI <tt>scheme</tt> or a positive integer value (valid values are restricted by the BP scheme registry <xref target="IANA-BP"/>).
+          </t>
+          <sourcecode type="abnf">
+any-ssp-item = scheme-set ":" multi-wildcard
+scheme-set = scheme-id / ("[" scheme-id *( "," scheme-id ) "]")
+scheme-id = scheme / non-zero-decimal
+          </sourcecode>
+          <t>
+The canonical text encoding of a single scheme in an any-SSP item <bcp14>SHALL</bcp14> omit the square brackets.
+The canonical text encoding of the scheme set in an any-SSP item <bcp14>SHALL</bcp14> place integers first, in ascending order, followed by text names, ordered by length first then by the bytewise lexicographical order of their encoded text.
+This sorting is identical to the CBOR form in <xref target="sec-pattern-arbscheme-cbor"/>.
+          </t>
+        </section>
+        <section anchor="sec-pattern-arbscheme-cbor">
+          <name>CBOR Form</name>
+          <t>
+The CBOR form of the any-SSP item is the following CDDL.
+The first array item conveys no information but because this does not match the <tt>eid-structure</tt> rule, it is guaranteed to be disambiguated with any current or future scheme-specific <tt>$eid-pat-item</tt> socket uses.
+          </t>
+          <sourcecode type="cddl">
+any-ssp-item = [null, + scheme-id]
+scheme-id = uint / tstr
+          </sourcecode>
+          <t>
+The canonical CBOR encoding of the scheme set in an any-SSP item <bcp14>SHALL</bcp14> be sorted by the bytewise lexicographic order of their deterministic encodings.
+This sorting is the same as the deterministic map key ordering of <xref section="4.2.1" target="RFC8949"/>.
+          </t>
         </section>
       </section>
       <section anchor="sec-pattern-ipn">
@@ -694,6 +719,7 @@ The use of this form is defined in <xref target="sec-pkix-cert-profile"/>.
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.5280.xml"/>
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.8174.xml"/>
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.8610.xml"/>
+        <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.8949.xml"/>
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.9171.xml"/>
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.9174.xml"/>
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.9525.xml"/>
