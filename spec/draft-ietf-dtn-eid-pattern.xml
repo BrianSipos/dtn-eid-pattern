@@ -148,6 +148,8 @@ The key words "<bcp14>MUST</bcp14>", "<bcp14>MUST NOT</bcp14>", "<bcp14>REQUIRED
         </t>
         <t>
 The terms "Endpoint" and "Endpoint ID" in this document refer to the meanings defined in <xref section="3.1" target="RFC9171"/>.
+        </t>
+        <t>
 Other terms specific to this document are the following.
         </t>
         <dl>
@@ -160,6 +162,10 @@ The internal representation of a pattern is expected to be normalized, even if a
           <dd>
 This means to choose a specific encoded form of a pattern value without changing the represented logical value, for example using a preferred ordering or a compressed code point.
 The text form of encoding has more canonicalization options than the binary form, and human-input text form is expected to not always use canonical choices.
+          </dd>
+          <dt>Elide:</dt>
+          <dd>
+This is an encoding choice to not represent both the text and integer form of a scheme in the <xref format="title" target="sec-pattern-arbscheme"/> when it is known by the encoder that all possible decoders of the pattern understand that scheme and are expected to re-constitute the elided form.
           </dd>
         </dl>
       </section>
@@ -180,39 +186,41 @@ See <xref target="sec-envelope"/> for recommendations about this need.
         <name>Pattern Set and Pattern Items</name>
         <t>
 The overall concept of this patterning structure is that one "EID Pattern" can be used to match any combination of EIDs.
-This is accomplished by a single pattern being composed of independent pattern items, each with scheme-specific rules and syntax.
+This is accomplished by a single pattern being composed of independent pattern items, each with specific rules and syntax.
         </t>
         <t>
-The conceptual model of the EID Pattern is as a non-empty sequence of scheme-specific pattern items.
+The conceptual model of the EID Pattern is as a sequence of pattern items, some of which are general purpose and some with scheme-specific content.
 This sequence is ordered in order to make translating between forms deterministic, as each encoding form necessarily has a specific order of items.
         </t>
         <t>
 Although the encoding forms are necessarily ordered, the matching logic for an EID Pattern is independent of the order of its items.
 An EID pattern <bcp14>SHALL</bcp14> be considered to match an EID if any of its constituent items match the EID.
+The sequence is also allowed to be empty, which by that definition will match no EIDs.
         </t>
         <t>
 Because matching against an "any-scheme" item (see <xref target="sec-pattern-anyscheme"/>) will necessarily make any scheme-specific patterns redundant, the text and CBOR forms of the EID pattern have a compressed form of any-scheme matching and disallow combining the any-scheme pattern with other items.
         </t>
         <t>
 The text form of the EID pattern is the following, which uses the URI reserved character "|" to delimit items in the sequence.
+This rule also allows a pattern to be empty, having no items.
 Because the delimiter is used between items, an EID pattern with one item has an identical text form to that item.
 This correspondence in text form between a single EID and an EID pattern item which matches that single EID <bcp14>SHALL</bcp14> be enforced by any future scheme-specific pattern syntax registered with IANA.
         </t>
         <sourcecode type="abnf">
 eid-pattern = any-scheme-item / eid-pattern-set
-eid-pattern-set = eid-pattern-item *( "|" eid-pattern-item )
+; The set is allowed to be empty
+eid-pattern-set = [ eid-pattern-item *( "|" eid-pattern-item ) ]
 eid-pattern-item = scheme-pat-item / any-ssp-item
 ; Extension point at scheme-pat-item for future scheme-specific rules
 scheme-pat-item = ipn-pat-item
         </sourcecode>
         <t>
 The CBOR form of the EID pattern is the following, which uses an enveloping array to contain the items.
-Although the any-scheme pattern includes a compressed encoding, avoiding the outer array, it still follows the conceptual model of a set of items (in which there is allowed only one item).
 Because there is otherwise always an outer array, there is no concept of a "bare" scheme-specific pattern item in the CBOR form and no exact correspondence in binary form between a single EID and an EID pattern item which matches that single EID.
         </t>
         <sourcecode type="cddl">
 eid-pattern = any-scheme-item / eid-pattern-set
-eid-pattern-set = [1* eid-pattern-item]
+eid-pattern-set = [* eid-pattern-item]
 eid-pattern-item = scheme-pat-item / any-ssp-item
 ; Each pattern still follows eid-structure
 scheme-pat-item = $eid-pat-item .within eid-structure
@@ -247,7 +255,7 @@ any-scheme-item = true
         <name>Any-SSP Pattern Item</name>
         <t>
 The next most generic pattern item is one which will match any SSP within a specific URI scheme or set of schemes.
-This includes schemes known to the EID handler as well as schemes by enumerated integer that need not be understood by the EID handler.
+This includes schemes known to the EID handler as well as schemes (named by text or integer value) that need not be understood by the EID handler.
         </t>
         <t>
 As a normalization, when an any-SSP item is present in an EID pattern it <bcp14>SHALL</bcp14> be the only item for the associated schemes.
@@ -290,6 +298,10 @@ The canonical text encoding of a single scheme in an any-SSP item <bcp14>SHALL</
 The canonical text encoding of the scheme set in an any-SSP item <bcp14>SHALL</bcp14> place integers first, in ascending order, followed by text names, ordered by length first then by the bytewise lexicographical order of their encoded text.
 This sorting is identical to the CBOR form in <xref target="sec-pattern-arbscheme-cbor"/>.
           </t>
+          <t>
+An encoder <bcp14>MAY</bcp14> elide the integer form of a scheme in a text encoding if it is known that all decoders of the pattern will re-constitute the integer form when normalizing the pattern.
+It is an implementation matter to determine when to elide during encoding.
+          </t>
         </section>
         <section anchor="sec-pattern-arbscheme-cbor">
           <name>CBOR Form</name>
@@ -304,6 +316,10 @@ scheme-id = uint / tstr
           <t>
 The canonical CBOR encoding of the scheme set in an any-SSP item <bcp14>SHALL</bcp14> be sorted by the bytewise lexicographic order of their deterministic encodings.
 This sorting is the same as the deterministic map key ordering of <xref section="4.2.1" target="RFC8949"/>.
+          </t>
+          <t>
+An encoder <bcp14>MAY</bcp14> elide the text form of a scheme in a CBOR encoding if it is known that all decoders of the pattern will re-constitute the text form when normalizing the pattern.
+It is an implementation matter to determine when to elide during encoding.
           </t>
         </section>
       </section>
@@ -1000,6 +1016,25 @@ which does not affect the information model but makes the encoded form shorter (
           </t>
         </section>
         <section>
+          <name>Disjoint Ranges</name>
+          <t>
+A single IPN-scheme item is not always able to encode a full desired pattern.
+In these cases multiple items will need to be combined, such as in the following text pattern
+          </t>
+          <sourcecode type="eidpat">
+ipn:0.*.*|ipn:977000.*.0
+</sourcecode>
+          <t>
+which has a CBOR form of:
+          </t>
+          <sourcecode type="cbor">
+[
+  [2, 0, true, true],
+  [2, [977000, true, 0]]
+]
+</sourcecode>
+        </section>
+        <section>
           <name>Two-Component Text Form</name>
           <t>
 This example includes a range over the FQNN in a two-component form between <tt>ipn:4196183048192100.*</tt> to <tt>ipn:4196183048192500.*</tt> inclusive as as the pattern
@@ -1053,9 +1088,19 @@ The equivalent pattern also makes use of the wildcard node number in the second 
 This section contains examples of patterns combining items.
         </t>
         <section>
-          <name>Any-Scheme Match</name>
+          <name>Match None</name>
           <t>
-This trivial example matches any possible EID.
+This trivial example does not match any EID, and this is the preferred way to "match none."
+It's text form is empty (so not represented here) and its CBOR form is the empty array
+          </t>
+          <sourcecode type="cbor">
+[]
+</sourcecode>
+        </section>
+        <section>
+          <name>Match All</name>
+          <t>
+This trivial example matches any possible EID, and this is the preferred way to "match all."
 It's text form is:
           </t>
           <sourcecode type="eidpat">
@@ -1071,26 +1116,32 @@ true
         <section>
           <name>Any-SSP Match</name>
           <t>
-These two examples match any ipn-scheme EID, either as text scheme or integer respectively:
+These two examples match any ipn-scheme EID, either as both-identifiers:
+          </t>
+          <sourcecode type="eidpat">
+[2,ipn]:**
+</sourcecode>
+          <t>
+or integer-elided:
           </t>
           <sourcecode type="eidpat">
 ipn:**
 </sourcecode>
           <t>
-and
+and both have the following CBOR form either as both-identifiers:
           </t>
-          <sourcecode type="eidpat">
-2:**
+          <sourcecode type="cbor">
+[2,"ipn"]
 </sourcecode>
           <t>
-and both have a CBOR form of:
+or text-elided:
           </t>
           <sourcecode type="cbor">
 [2]
 </sourcecode>
         </section>
         <section>
-          <name>Multiple Scheme Match</name>
+          <name>Multiple Item Match</name>
           <t>
 This example combines items with different schemes together in one pattern, it will match <tt>dtn:**</tt> and <tt>ipn:0.3.4</tt>
 It's text form is:
@@ -1103,7 +1154,7 @@ and its CBOR form is:
           </t>
           <sourcecode type="cbor">
 [
-  1,
+  [null, 1],
   [2, [0, 3, 4]]
 ]
 </sourcecode>
