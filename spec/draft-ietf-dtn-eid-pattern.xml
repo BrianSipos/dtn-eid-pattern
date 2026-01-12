@@ -42,11 +42,11 @@ This document also defines a Public Key Infrastructure Using X.509 (PKIX) Other 
       <name>Introduction</name>
       <t>
 The Bundle Protocol (BP) Version 7 specification <xref target="RFC9171"/> defines Uniform Resource Identifier (URI) text and Concise Binary Object Representation (CBOR) binary encoding forms of an Endpoint ID (EID). An EID value is used as both a source and a destination for individual Bundles among other uses in BP. In addition to the base protocol, the BP Security (BPSec) specification <xref target="RFC9172"/> uses an EID for security source identity and the TCP Convergence Layer (TCPCL) <xref target="RFC9174"/> uses an EID value for peer identity.
-BP Agent implementations have necessarily used methods of defining patterns for matching multiple EIDs in order to configure routing, forwarding, and delivery of bundles, security policy, and convergence layer policy, but these have not yet been standardized and do not have a concise form suitable for on-the-wire messaging.
+BP Agent implementations have necessarily used methods of defining patterns for matching multiple EIDs in order to configure routing, forwarding, and delivery of Bundles, security policy, and convergence layer policy, but these have not yet been standardized and do not have a concise form suitable for on-the-wire messaging.
       </t>
       <t>
 In much the same way that the Classless Inter-domain Routing (CIDR) mechanism <xref target="RFC4632"/> can be used to aggregate a contiguous and bit-aligned block of IP addresses in a concise unit (encoded as text or otherwise), this concept of EID Pattern is used to aggregate a set of EIDs into a single concise unit.
-This is valuable because an EID includes both an identifier of the node sending or receiving the bundle as well as an identifier for the specific service which generated or will process the bundle.
+This is valuable because an EID includes both an identifier of the node sending or receiving the Bundle as well as an identifier for the specific service which generated or will process the Bundle.
 Any EID Pattern can be used both to aggregate EIDs based on node identifier, service identifier, or both.
       </t>
       <t>
@@ -98,7 +98,7 @@ This document defines scheme-specific pattern for the "ipn" URI scheme, as its s
         </t>
         <t>
 Although the same EID definitions apply to BP Version 6 <xref target="RFC5050"/> this document does not provide any mechanisms of integrating with that protocol.
-It is an implementation matter for a BP Agent to use EID Patterns with BP Version 6 bundles and their compressed bundle header encoding (CBHE).
+It is an implementation matter for a BP Agent to use EID Patterns with BP Version 6 and its compressed bundle header encoding (CBHE).
         </t>
       </section>
       <section>
@@ -255,7 +255,7 @@ any-scheme-item = true
         <name>Any-SSP Pattern Item</name>
         <t>
 The next most generic pattern item is one which will match any SSP within a specific URI scheme or set of schemes.
-This includes schemes known to the EID handler as well as schemes (named by text or integer value) that need not be understood by the EID handler.
+This includes schemes known to the EID handler as well as schemes (identified by text or integer value) that need not be understood by the EID handler.
         </t>
         <t>
 As a normalization, when an any-SSP item is present in an EID pattern it <bcp14>SHALL</bcp14> be the only item for the associated schemes.
@@ -266,6 +266,10 @@ As a normalization, only a single any-SSP item <bcp14>SHALL</bcp14> be used to r
 This avoids redundancy in encoded forms and aids in human understanding when all any-SSP matching is combined in one item.
         </t>
         <t>
+As a normalization, any schemes identified in any-SSP item <bcp14>SHALL</bcp14> be expanded to include the alternative (text or integer) form of identifier.
+This enables the <em>elide</em> logic of the encoded forms and serves to support general purpose matching of either text URI forms of EID (using the text form of scheme identifier) or the CBOR forms of EID (using the integer form of identifier).
+        </t>
+        <t>
 When present, the canonical ordering of pattern items <bcp14>SHALL</bcp14> place the any-SSP item at the front of the list.
         </t>
         <section>
@@ -273,7 +277,6 @@ When present, the canonical ordering of pattern items <bcp14>SHALL</bcp14> place
           <t>
 An any-SSP pattern <bcp14>SHALL</bcp14> be considered to match a specific EID when both have the same normalized scheme.
 Scheme normalization for text EIDs is to convert to a lower-case alphabetic form in accordance with <xref section="3.1" target="RFC3986"/>.
-For schemes which are known to the processing entity, the integer form <bcp14>SHALL</bcp14> be the normalized form.
 For schemes which are unknown to the processing entity, the text form of the any-SSP pattern scheme <bcp14>SHALL</bcp14> be used to match text-form EIDs and the integer form of the pattern scheme <bcp14>SHALL</bcp14> be used to match CBOR-form EIDs.
           </t>
           <t>
@@ -282,6 +285,13 @@ This means that for entities that cannot process a specific (fictional) private-
           <sourcecode type="eidpat">
 [65536,example]:**
 </sourcecode>
+        </section>
+        <section>
+          <name>Pattern Set Logic</name>
+          <t>
+The parameter for the any-SSP pattern is solely the set of scheme identifiers, so two set logic of the pattern is identical to set logic on those (normalized) identifiers.
+This can result in a situation where two pattern processors have different matching logic for the same input pattern if they support different EID schemes and are able to expand elided scheme forms differently.
+          </t>
         </section>
         <section anchor="sec-pattern-arbscheme-text">
           <name>Text Form</name>
@@ -627,22 +637,71 @@ This is also consistent with how the existing Previous Node block-type-specific 
     <section anchor="sec-security">
       <name>Security Considerations</name>
       <t>
+This section separates security considerations into categories based on guidance of BCP 72 <xref target="RFC3552"/>.
+      </t>
+      <section>
+        <name>Denial of Service Possibilities</name>
+        <t>
+Because EID patterns are expected to be used as external input to a BP Agent, there is the possibility of an encoded value to either be not-well-formed or well-formed but purposefully resource intensive.
+Either of these cases can cause resource exhaustion of a BP Agent and thus deny resources to normal data services provided by the Agent.
+These considerations are not exclusive to the EID Pattern syntax, and apply just as well to any other external input data.
+        </t>
+        <t>
+An example of a malicious not-well-formed pattern is a CBOR form that contains an array with a definite length that is larger than the actual encoded pattern.
+A trivial decoder might attempt to pre-allocate memory based on the array head and exhaust its memory.
+A mitigation of this is to have bounds on acceptable lengths/sizes within the CBOR decoder.
+        </t>
+        <t>
+An example with a well-formed pattern is to simply encode a pattern set with thousands or millions of arbitrary, but valid, items.
+A decoder could attempt to fully decode this valid pattern but by doing so exhaust its memory.
+A similar mitigation here is to bound acceptable sizes above the CBOR layer within the pattern decoding.
+        </t>
+      </section>
+      <section>
+        <name>Misinterpretion of Encoded Values</name>
+        <t>
 It is critical for applications handling EIDs and EID Patterns to positively distinguish between the two based on the context in which the value is being used.
 For PKIX Subject Alternative Name this is distinguished by the different Other Name forms.
 An EID which is inappropriately interpreted as an EID Pattern could allow an attacker to elevate access depending upon other aspects of the system being accessed.
-      </t>
-      <t>
+        </t>
+        <t>
 CAs which issue certificates containing EID Patterns need to consider the implications of an overly-broad pattern in the same way that current Web PKI CAs manage certificates with wildcard DNS-IDs.
 This is discussed for DNS-IDs in <xref section="7.1" target="RFC9525"/>.
-      </t>
-      <t>
+        </t>
+        <t>
 Although the reserved characters "[" and "]" are disallowed within the URI authority and path segments by <xref target="RFC3986"/> there are still URI processors which could be lax about enforcing that restriction and could allow an EID pattern to be decoded in a place where an actual EID is expected.
 This could allow unwanted side-effects when the EID is handled by a BP Agent.
-      </t>
-      <t>
+        </t>
+        <t>
 The URI authority part and path segments are percent-encoded text and need to be handled by EID processors as such for both pattern matching and equality comparison.
 Additionally, for the IPN scheme there are numeric values that need to be handled as such for pattern matching and comparison.
-      </t>
+        </t>
+      </section>
+      <section>
+        <name>Expansion of Elided Any-SSP Schemes</name>
+        <t>
+The requirements for the any-SSP pattern in <xref target="sec-pattern-arbscheme"/> allow an encoder (which in some cases is expected to be a human) to elide forms of specific scheme identifiers based on knowledge (or assumptions) about decoders of the pattern.
+If the knowledge or assumptions are not valid, there is the possibility that 
+        </t>
+        <t>
+For example, given the fully-identified pattern
+        </t>
+        <sourcecode type="eidpat">
+[65536,example]:**
+</sourcecode>
+        <t>
+if this pattern passes through a CBOR encoding which elides the text form, the pattern is logically reduced to
+        </t>
+        <sourcecode type="eidpat">
+[65536]:**
+</sourcecode>
+        <t>
+and any pattern processor which does not know the name "example" for this private use scheme will not be able to match text form EID values.
+        </t>
+        <t>
+As somewhat of a mitigation of this issue, when used as external input to a BP Agent through CBOR encoded pattern the text-elided form will still always be able to properly match CBOR encoded EID values within Bundles themselves.
+        </t>
+      </section>
     </section>
     <section anchor="sec-iana">
       <name>IANA Considerations</name>
@@ -753,6 +812,7 @@ The use of this form is defined in <xref target="sec-pkix-cert-profile"/>.
       </references>
       <references>
         <name>Informative References</name>
+        <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.3552.xml"/>
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.4592.xml"/>
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.5050.xml"/>
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.5912.xml"/>
@@ -1116,7 +1176,7 @@ true
         <section>
           <name>Any-SSP Match</name>
           <t>
-These two examples match any ipn-scheme EID, either as both-identifiers:
+These two examples match any ipn-scheme EID, either as fully-identified:
           </t>
           <sourcecode type="eidpat">
 [2,ipn]:**
@@ -1128,7 +1188,7 @@ or integer-elided:
 ipn:**
 </sourcecode>
           <t>
-and both have the following CBOR form either as both-identifiers:
+and both have the following CBOR form either as fully-identified:
           </t>
           <sourcecode type="cbor">
 [2,"ipn"]
