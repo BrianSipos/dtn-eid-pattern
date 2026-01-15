@@ -1165,28 +1165,28 @@ true
         <section>
           <name>Any-SSP Match</name>
           <t>
-These two examples match any ipn-scheme EID, either as fully-identified:
+These two examples match any ipn-scheme EID, either fully-identified as:
           </t>
           <sourcecode type="eidpat">
 [2,ipn]:**
 </sourcecode>
           <t>
-or integer-elided:
+or integer-elided as:
           </t>
           <sourcecode type="eidpat">
 ipn:**
 </sourcecode>
           <t>
-and both have the following CBOR form either as fully-identified:
+and both have the following CBOR form either fully-identified as:
           </t>
           <sourcecode type="cbor">
-[2,"ipn"]
+[[null, 2, "ipn"]]
 </sourcecode>
           <t>
-or text-elided:
+or text-elided as:
           </t>
           <sourcecode type="cbor">
-[2]
+[[null, 2]]
 </sourcecode>
         </section>
         <section>
