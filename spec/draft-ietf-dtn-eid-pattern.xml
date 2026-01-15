@@ -289,7 +289,7 @@ This means that for entities that cannot process a specific (fictional) private-
         <section>
           <name>Pattern Set Logic</name>
           <t>
-The parameter for the any-SSP pattern is solely the set of scheme identifiers, so two set logic of the pattern is identical to set logic on those (normalized) identifiers.
+The parameter for the any-SSP pattern is solely the set of scheme identifiers, so the set logic of this pattern is identical to set logic on those (normalized) identifiers.
 This can result in a situation where two pattern processors have different matching logic for the same input pattern if they support different EID schemes and are able to expand elided scheme forms differently.
           </t>
         </section>
