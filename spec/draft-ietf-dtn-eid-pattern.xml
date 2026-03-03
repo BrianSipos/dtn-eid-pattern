@@ -191,6 +191,7 @@ This is accomplished by a single pattern being composed of independent pattern i
         <t>
 The conceptual model of the EID Pattern is as a sequence of pattern items, some of which are general purpose and some with scheme-specific content.
 This sequence is ordered in order to make translating between forms deterministic, as each encoding form necessarily has a specific order of items.
+To ensure interoperability, all implementations <bcp14>SHALL</bcp14> support at least 16 items per pattern.
         </t>
         <t>
 Although the encoding forms are necessarily ordered, the matching logic for an EID Pattern is independent of the order of its items.
@@ -369,6 +370,9 @@ The CBOR form of a range does not allow overlapping or contiguous intervals beca
 Within a single element of the IPN pattern, any range interval that includes values outside the element domain <bcp14>SHALL</bcp14> be reduced to fit the domain.
 The decoder for any form of an IPN pattern <bcp14>SHALL</bcp14> normalize all interval sets to satisfy information model requirements.
 The decoder for any form of an IPN pattern <bcp14>SHOULD</bcp14> treat the failure of any element of a pattern as a failure to decode the whole pattern.
+        </t>
+        <t>
+To ensure interoperability, all implementations <bcp14>SHALL</bcp14> support at least 16 intervals per range in each element.
         </t>
         <section>
           <name>EID Matching</name>
