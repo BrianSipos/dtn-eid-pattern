@@ -191,7 +191,8 @@ This is accomplished by a single pattern being composed of independent pattern i
         <t>
 The conceptual model of the EID Pattern is as a sequence of pattern items, some of which are general purpose and some with scheme-specific content.
 This sequence is ordered in order to make translating between forms deterministic, as each encoding form necessarily has a specific order of items.
-To ensure interoperability, all implementations <bcp14>SHALL</bcp14> support at least 16 items per pattern.
+To ensure interoperability, all implementations <bcp14>SHALL</bcp14> support at least 10 items per pattern.
+Implementations <bcp14>SHOULD</bcp14> support at least 100 items per pattern.
         </t>
         <t>
 Although the encoding forms are necessarily ordered, the matching logic for an EID Pattern is independent of the order of its items.
@@ -372,7 +373,8 @@ The decoder for any form of an IPN pattern <bcp14>SHALL</bcp14> normalize all in
 The decoder for any form of an IPN pattern <bcp14>SHOULD</bcp14> treat the failure of any element of a pattern as a failure to decode the whole pattern.
         </t>
         <t>
-To ensure interoperability, all implementations <bcp14>SHALL</bcp14> support at least 16 intervals per range in each element.
+To ensure interoperability, all implementations <bcp14>SHALL</bcp14> support at least 10 intervals per range in each IPN element.
+Implementations <bcp14>SHOULD</bcp14> support at least 100 intervals per range in each IPN element.
         </t>
         <section>
           <name>EID Matching</name>
