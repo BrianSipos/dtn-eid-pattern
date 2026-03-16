@@ -274,6 +274,10 @@ This enables the <em>elide</em> logic of the encoded forms and serves to support
         <t>
 When present, the canonical ordering of pattern items <bcp14>SHALL</bcp14> place the any-SSP item at the front of the list.
         </t>
+        <t>
+To ensure interoperability, all implementations <bcp14>SHALL</bcp14> support at least 10 schemes (of either text or integer value) per item.
+Implementations <bcp14>SHOULD</bcp14> support at least 100 schemes per item.
+        </t>
         <section>
           <name>EID Matching</name>
           <t>
