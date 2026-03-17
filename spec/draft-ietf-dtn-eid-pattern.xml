@@ -227,7 +227,7 @@ The correspondence in text form between a single EID and an EID pattern item whi
           <t>
 Any current or future text form scheme-specific pattern structure <bcp14>SHALL</bcp14> conform to the existing URI structure of a scheme name (matching the <tt>scheme</tt> rule from URI) followed by a colon (":") followed by a scheme-specific part.
 The text form pattern item scheme-specific part <bcp14>SHALL</bcp14> contain UTF8 characters <xref target="RFC3629"/> excluding the separator "|".
-Because of that constraint, the number of items in a text form pattern can be determined by counting the number of "|" separators present.
+Because of that constraint, the number of items in a text form pattern can be determined by counting the number of "|" separators present (with a special case for the empty pattern).
           </t>
           <t>
 Beyond that simple constraint, all other characters (including those prohibited from URI syntax) can be part of a scheme-specific pattern definition.
