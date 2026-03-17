@@ -119,6 +119,7 @@ multi-wildcard = "**"
 non-zero-decimal = (%x31-39 *DIGIT)
         </sourcecode>
         <t>
+The definition for the rule <tt>UTF8-octets</tt> is taken from UTF8 <xref target="RFC3629"/>.
 The definitions for the rule <tt>scheme</tt> is taken from URI <xref target="RFC3986"/>.
 The definition for the rule <tt>digit</tt> is taken from ABNF <xref target="RFC5234"/>.
 The definition for the rules <tt>ipn-decimal</tt> and <tt>nbr-delim</tt> are copied from BP <xref target="RFC9171"/>.
@@ -208,7 +209,7 @@ Because matching against an "any-scheme" item (see <xref target="sec-pattern-any
 The text form of the EID pattern is the following ABNF rule, which uses the URI reserved character "|" to delimit items in the sequence.
 This rule also allows a pattern to be empty, having no items.
           </t>
-          <sourcecode type="abnf">
+          <sourcecode type="abnf"><![CDATA[
 eid-pattern = any-scheme-item / eid-pattern-set
 ; The set is allowed to be empty
 eid-pattern-set = [ eid-pattern-item *( "|" eid-pattern-item ) ]
@@ -217,16 +218,15 @@ eid-pattern-item = any-ssp-item
 ; constrained by the structure below, not enforced by ABNF
 
 eid-item-structure = scheme ":" *ssp-char
-; Any US-ASCII excluding ":" and "|"
-ssp-char = %x01-39 / %x3B-7B / %x7D-7F
-          </sourcecode>
+ssp-char = <UTF8-octets excluding ":" "|">
+]]></sourcecode>
           <t>
 Because the delimiter is used between items, an EID pattern with one item has an identical text form to that item.
 The correspondence in text form between a single EID and an EID pattern item which matches that single EID <bcp14>SHALL</bcp14> be enforced by any future scheme-specific pattern syntax registered with IANA.
           </t>
           <t>
 Any current or future text form scheme-specific pattern structure <bcp14>SHALL</bcp14> conform to the existing URI structure of a scheme name (matching the <tt>scheme</tt> rule from URI) followed by a colon (":") followed by a scheme-specific part.
-The text form pattern item scheme-specific part <bcp14>SHALL</bcp14> contain US-ASCII text excluding common separators "|" and ":".
+The text form pattern item scheme-specific part <bcp14>SHALL</bcp14> contain UTF8 characters <xref target="RFC3629"/> excluding common separators "|" and ":".
 Beyond that simple constraint all other characters, including those prohibited from URIs proper, can be part of a scheme-specific pattern definition.
 It is <bcp14>RECOMMENDED</bcp14> that future scheme-specific pattern definitions consider human-readability of the scheme-specific character set.
           </t>
@@ -243,8 +243,8 @@ eid-pattern = any-scheme-item / eid-pattern-set
 eid-pattern-set = [* eid-pattern-item]
 eid-pattern-item = scheme-pat-item / any-ssp-item
 
-; Each pattern still follows eid-structure from [RFC9171]
 scheme-pat-item = $eid-pat-item .within eid-structure
+; Each pattern still follows eid-structure from [RFC9171]
 eid-structure = [uri-code: uint, SSP: any]
           </sourcecode>
           <t>
@@ -828,6 +828,7 @@ The use of this form is defined in <xref target="sec-pkix-cert-profile"/>.
           </front>
         </reference>
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.2119.xml"/>
+        <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.3629.xml"/>
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.3986.xml"/>
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.4632.xml"/>
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.5234.xml"/>
