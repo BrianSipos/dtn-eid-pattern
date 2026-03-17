@@ -459,6 +459,7 @@ When encoding an interval, if its last included value is the largest value in th
           <figure anchor="fig-pattern-ipn-text">
             <name>IPN Pattern ABNF Schema</name>
             <sourcecode markers="false" type="abnf">
+eid-pattern-item =/ ipn-pat-item
 ipn-pat-item = "ipn:" (ipn-pat-ssp3 / ipn-pat-ssp2)
 ; Full pattern for three elements
 ipn-pat-ssp3 = ipn-part-pat 
