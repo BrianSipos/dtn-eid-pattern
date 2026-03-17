@@ -119,9 +119,10 @@ multi-wildcard = "**"
 non-zero-decimal = (%x31-39 *DIGIT)
         </sourcecode>
         <t>
-The definitions for the rules <tt>pchar</tt> and <tt>scheme</tt> are taken from URI <xref target="RFC3986"/>.
+The definition for the rule <tt>UTF8-octets</tt> is taken from UTF8 <xref target="RFC3629"/>.
+The definitions for the rule <tt>scheme</tt> is taken from URI <xref target="RFC3986"/>.
 The definition for the rule <tt>digit</tt> is taken from ABNF <xref target="RFC5234"/>.
-The definition for the rule <tt>nbr-delim</tt> is taken from BP <xref target="RFC9171"/>.
+The definition for the rules <tt>ipn-decimal</tt> and <tt>nbr-delim</tt> are copied from BP <xref target="RFC9171"/>.
         </t>
       </section>
       <section>
@@ -138,7 +139,7 @@ The following initial fragment defines the top-level rules of this document's CD
 start = eid-pattern / embed-eid-pattern
         </sourcecode>
         <t>
-The definition for the rule <tt>eid-structure</tt> is taken from BP <xref target="RFC9171"/>.
+The definition for the rule <tt>eid-structure</tt> is copied from BP <xref target="RFC9171"/>.
         </t>
       </section>
       <section anchor="sec-terminology">
@@ -202,31 +203,60 @@ The sequence is also allowed to be empty, which by that definition will match no
         <t>
 Because matching against an "any-scheme" item (see <xref target="sec-pattern-anyscheme"/>) will necessarily make any scheme-specific patterns redundant, the text and CBOR forms of the EID pattern have a compressed form of any-scheme matching and disallow combining the any-scheme pattern with other items.
         </t>
-        <t>
-The text form of the EID pattern is the following, which uses the URI reserved character "|" to delimit items in the sequence.
+        <section>
+          <name>Text Form</name>
+          <t>
+The text form of the EID pattern is the following ABNF rule, which uses the URI reserved character "|" to delimit items in the sequence.
 This rule also allows a pattern to be empty, having no items.
-Because the delimiter is used between items, an EID pattern with one item has an identical text form to that item.
-This correspondence in text form between a single EID and an EID pattern item which matches that single EID <bcp14>SHALL</bcp14> be enforced by any future scheme-specific pattern syntax registered with IANA.
-        </t>
-        <sourcecode type="abnf">
+          </t>
+          <sourcecode type="abnf"><![CDATA[
 eid-pattern = any-scheme-item / eid-pattern-set
 ; The set is allowed to be empty
 eid-pattern-set = [ eid-pattern-item *( "|" eid-pattern-item ) ]
-eid-pattern-item = scheme-pat-item / any-ssp-item
-; Extension point at scheme-pat-item for future scheme-specific rules
-scheme-pat-item = ipn-pat-item
-        </sourcecode>
-        <t>
+eid-pattern-item = any-ssp-item
+; Extension point at eid-pattern-item for scheme-specific rules
+; constrained by the structure below, not enforced by ABNF
+
+eid-item-structure = scheme ":" *ssp-char
+ssp-char = <UTF8-octets excluding "|">
+]]></sourcecode>
+          <t>
+Because the delimiter is used between items, an EID pattern with one item has an identical text form to that item.
+The correspondence in text form between a single EID and an EID pattern item which matches that single EID <bcp14>SHALL</bcp14> be enforced by any future scheme-specific pattern syntax registered with IANA.
+          </t>
+          <t>
+Any current or future text form scheme-specific pattern structure <bcp14>SHALL</bcp14> conform to the existing URI structure of a scheme name (matching the <tt>scheme</tt> rule from URI) followed by a colon (":") followed by a scheme-specific part.
+The text form pattern item scheme-specific part <bcp14>SHALL</bcp14> contain UTF8 characters <xref target="RFC3629"/> excluding the separator "|".
+Because of that constraint, the number of items in a text form pattern can be determined by counting the number of "|" separators present.
+          </t>
+          <t>
+Beyond that simple constraint, all other characters (including those prohibited from URI syntax) can be part of a scheme-specific pattern definition.
+It is <bcp14>RECOMMENDED</bcp14> that future scheme-specific pattern definitions consider human-readability of the scheme-specific character set.
+          </t>
+        </section>
+        <section>
+          <name>CBOR Form</name>
+          <t>
 The CBOR form of the EID pattern is the following, which uses an enveloping array to contain the items.
-Because there is otherwise always an outer array, there is no concept of a "bare" scheme-specific pattern item in the CBOR form and no exact correspondence in binary form between a single EID and an EID pattern item which matches that single EID.
-        </t>
-        <sourcecode type="cddl">
+Although the any-scheme pattern includes a compressed encoding, avoiding the outer array, it still follows the conceptual model of a set of items (in which there is allowed only one item).
+The empty array allows a pattern to be empty, having no items.
+          </t>
+          <sourcecode type="cddl">
 eid-pattern = any-scheme-item / eid-pattern-set
 eid-pattern-set = [* eid-pattern-item]
 eid-pattern-item = scheme-pat-item / any-ssp-item
-; Each pattern still follows eid-structure
+
 scheme-pat-item = $eid-pat-item .within eid-structure
-        </sourcecode>
+; Each pattern still follows eid-structure from [RFC9171]
+eid-structure = [uri-code: uint, SSP: any]
+          </sourcecode>
+          <t>
+Because there is otherwise always an outer array when a scheme-specific item is present, there is no concept of a "bare" scheme-specific item in the CBOR form and no exact correspondence in binary form between a single EID and an EID pattern item which matches that single EID.
+          </t>
+          <t>
+Any current or future CBOR form scheme-specific pattern structure <bcp14>SHALL</bcp14> conform to the existing EID structure of a two-item array containing a scheme number and a scheme-specific part as a single CBOR item.
+          </t>
+        </section>
       </section>
       <section anchor="sec-pattern-anyscheme">
         <name>Any-Scheme Pattern Item</name>
@@ -432,6 +462,7 @@ When encoding an interval, if its last included value is the largest value in th
           <figure anchor="fig-pattern-ipn-text">
             <name>IPN Pattern ABNF Schema</name>
             <sourcecode markers="false" type="abnf">
+eid-pattern-item =/ ipn-pat-item
 ipn-pat-item = "ipn:" (ipn-pat-ssp3 / ipn-pat-ssp2)
 ; Full pattern for three elements
 ipn-pat-ssp3 = ipn-part-pat 
@@ -800,6 +831,7 @@ The use of this form is defined in <xref target="sec-pkix-cert-profile"/>.
           </front>
         </reference>
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.2119.xml"/>
+        <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.3629.xml"/>
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.3986.xml"/>
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.4632.xml"/>
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.5234.xml"/>
