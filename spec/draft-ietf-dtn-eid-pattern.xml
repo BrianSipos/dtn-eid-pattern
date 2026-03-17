@@ -218,7 +218,7 @@ eid-pattern-item = any-ssp-item
 ; constrained by the structure below, not enforced by ABNF
 
 eid-item-structure = scheme ":" *ssp-char
-ssp-char = <UTF8-octets excluding ":" "|">
+ssp-char = <UTF8-octets excluding "|">
 ]]></sourcecode>
           <t>
 Because the delimiter is used between items, an EID pattern with one item has an identical text form to that item.
@@ -226,8 +226,11 @@ The correspondence in text form between a single EID and an EID pattern item whi
           </t>
           <t>
 Any current or future text form scheme-specific pattern structure <bcp14>SHALL</bcp14> conform to the existing URI structure of a scheme name (matching the <tt>scheme</tt> rule from URI) followed by a colon (":") followed by a scheme-specific part.
-The text form pattern item scheme-specific part <bcp14>SHALL</bcp14> contain UTF8 characters <xref target="RFC3629"/> excluding common separators "|" and ":".
-Beyond that simple constraint all other characters, including those prohibited from URIs proper, can be part of a scheme-specific pattern definition.
+The text form pattern item scheme-specific part <bcp14>SHALL</bcp14> contain UTF8 characters <xref target="RFC3629"/> excluding the separator "|".
+Because of that constraint, the number of items in a text form pattern can be determined by counting the number of "|" separators present.
+          </t>
+          <t>
+Beyond that simple constraint, all other characters (including those prohibited from URI syntax) can be part of a scheme-specific pattern definition.
 It is <bcp14>RECOMMENDED</bcp14> that future scheme-specific pattern definitions consider human-readability of the scheme-specific character set.
           </t>
         </section>
