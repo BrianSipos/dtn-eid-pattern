@@ -181,7 +181,7 @@ There are also scheme-independent match-all forms that function without a proces
       <t>
 An EID Pattern processor <bcp14>MAY</bcp14> normalize the internal representation of a pattern to an equivalent one without keeping track of the original pattern information or encoding.
 If an pattern-using application needs to ensure that original encodings are kept, that needs to happen outside of the pattern processor.
-See <xref target="sec-envelope"/> for recommendations about this need.
+See <xref target="sec-ops-envelope-pat"/> for recommendations about this need.
       </t>
       <section anchor="sec-pattern-top">
         <name>Pattern Set and Pattern Items</name>
@@ -645,37 +645,80 @@ The refusal or not to issue such subordinate certificates does not affect the ul
         </t>
       </section>
     </section>
-    <section anchor="sec-envelope">
-      <name>Enveloping Considerations</name>
+    <section anchor="sec-ops">
+      <name>Operational Considerations</name>
       <t>
+This section explains various operational topics based on guidance of the IETF Operations and Management Area Working Group <xref target="RFC5706"/>.
+      </t>
+      <section anchor="sec-ops-scheme-support">
+        <name>Supported Schemes of Pattern Processors</name>
+        <t>
+It is expected that every implementation of EID pattern processing will have some limited support for scheme-specific pattern items, given that the text form and binary form for yet-to-be-defined schemes has unknown complexity and there will always be some time delay between specification and implementation.
+        </t>
+        <t>
+When supplying an EID pattern to any processor it is critical to know what schemes that processor supports.
+Even in cases where a pattern decoding failure is isolated to a single pattern value (text or binary form), overall consistency of some full configuration will likely depend upon a processor correctly handling many separate patterns for different purposes.
+        </t>
+        <t>
+For example, if patterns are used by a node for its forwarding or routing configuration then each forwarding or routing entry will contain a separate pattern for matching destination EIDs.
+In the case where the node does not support some scheme which it is given for specific entries, those entries will be unusable and the node's behavior will revert to using some alternative or default option.
+        </t>
+        <t>
+EID pattern processors are <bcp14>RECOMMENDED</bcp14> to count errors, log errors, and/or cause alarm condition when patterns fail to be handled because of unsupported schemes.
+        </t>
+      </section>
+      <section anchor="sec-ops-length-support">
+        <name>Constraints of Pattern Processors</name>
+        <t>
+Even when a pattern processor is known to support a specific scheme, there can be limitations for cardinalities (<em>e.g.</em>, lengths of lists, lengths of strings) within scheme-specific decoding or processing.
+Even the mandatory-to-implement <xref target="sec-pattern-arbscheme">any-SSP item</xref> can contain a list of schemes for which a processor can have length limitations.
+        </t>
+        <t>
+This document, and any subsequent scheme-specific specifications, defines mandatory minimum support for the number of items in variable-length lists.
+But beyond each mandatory minimum there is expected to be a large variety of implementation-specific choices for what an appropriate support is appropriate for each type of limit.
+        </t>
+        <t>
+For example, a lightweight implementation intended for edge node use could have low limits because they are not expected to deal with complex security or routing configurations.
+While an interior trunking router could provide very high limits with the intention that they will have very complex individual configurations.
+        </t>
+      </section>
+      <section anchor="sec-ops-envelope-pat">
+        <name>EID Pattern Enveloping</name>
+        <t>
 When an EID pattern is enveloped into a data store or protocol data unit, it is important to avoid requiring the processor of that containing context to understand the nuances of EID Pattern syntax.
 For the text form of EID Patterns this is straightforward because the encoded text string can simply be handled without concern for its contents.
 The use of an EID Pattern as a PKIX Other Name Form in <xref target="sec-pkix-cert-profile"/> makes use of this strategy.
-      </t>
-      <t>
+        </t>
+        <t>
 For the binary form of EID Patterns, when the encoded item is not handled as a simple byte string it is <bcp14>RECOMMENDED</bcp14> to embed the EID Pattern within a CBOR byte string as a single item.
 This is formalized by the following CDDL.
-      </t>
-      <sourcecode markers="false" type="cddl">
+        </t>
+        <sourcecode markers="false" type="cddl">
 embed-eid-pattern = bstr .cbor eid-pattern
-      </sourcecode>
-      <t>
+</sourcecode>
+        <t>
 Embedding in a byte string this way allows BP EID Pattern-unaware processors to handle it without concern for its syntax or validity.
 Using a single-item embedding ensures that the number of pattern items contained is still available to decoders in the <tt>eid-pattern</tt> array head.
-      </t>
-      <t>
+        </t>
+      </section>
+      <section anchor="sec-ops-envelope-eid">
+        <name>EID Enveloping</name>
+        <t>
 A similar recommendation is provided here for enveloping EIDs themselves, which is not discussed in BP <xref target="RFC9171"/> so this document does not formally update that specification.
+        </t>
+        <t>
 For the binary form of EIDs, when the encoded item is not handled as a simple byte string it is <bcp14>RECOMMENDED</bcp14> to embed the EID within a CBOR byte string as a single item.
 This is formalized by the following CDDL.
-      </t>
-      <sourcecode markers="false" type="cddl">
+        </t>
+        <sourcecode markers="false" type="cddl">
 embed-eid-structure = bstr .cbor eid-structure
-      </sourcecode>
-      <t>
+        </sourcecode>
+        <t>
 Embedding in a byte string this way allows BP EID-unaware processors to handle it without concern for its syntax or validity.
 Although this adds some redundancy to the encoding because the <tt>eid-structure</tt> is always a two-element array, it is limited to the single byte of the its array head.
 This is also consistent with how the existing Previous Node block-type-specific data content is defined in <xref section="4.4.1" target="RFC9171"/>.
-      </t>
+        </t>
+      </section>
     </section>
     <section anchor="sec-security">
       <name>Security Considerations</name>
@@ -859,6 +902,7 @@ The use of this form is defined in <xref target="sec-pkix-cert-profile"/>.
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.3552.xml"/>
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.4592.xml"/>
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.5050.xml"/>
+        <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.5706.xml"/>
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.5912.xml"/>
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.6570.xml"/>
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.7942.xml"/>
