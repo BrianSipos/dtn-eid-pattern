@@ -45,12 +45,12 @@ The Bundle Protocol (BP) Version 7 specification <xref target="RFC9171"/> define
 BP Agent implementations have necessarily used methods of defining patterns for matching multiple EIDs in order to configure routing, forwarding, and delivery of Bundles, security policy, and convergence layer policy, but these have not yet been standardized and do not have a concise form suitable for on-the-wire messaging.
       </t>
       <t>
-In much the same way that the Classless Inter-domain Routing (CIDR) mechanism <xref target="RFC4632"/> can be used to aggregate a contiguous and bit-aligned block of IP addresses in a concise unit (encoded as text or otherwise), this concept of EID Pattern is used to aggregate a set of EIDs into a single concise unit.
+In much the same way that the Classless Inter-domain Routing (CIDR) mechanism <xref target="RFC4632"/> can be used to aggregate a contiguous and bit-aligned block of IP addresses in a concise unit (encoded as text or otherwise <xref target="RFC9164"/>), this concept of EID Pattern is used to aggregate a set of EIDs into a single concise unit.
 This is valuable because an EID includes both an identifier of the node sending or receiving the Bundle as well as an identifier for the specific service which generated or will process the Bundle.
 Any EID Pattern can be used both to aggregate EIDs based on node identifier, service identifier, or both.
       </t>
       <t>
-A purely text-based pattern mechanism such as <xref target="W3C-PAT"/> could handle the general case of matching the text form of EIDs (as URIs) but would not be able to achieve the same level of encoding compression and would not be able to express of exact numeric ranges like the scheme-specific mechanism defined in this document.
+A purely text-based pattern mechanism such as W3C URI Patterns <xref target="W3C-PAT"/> could handle the general case of matching the text form of EIDs (as URIs) but would not be able to achieve the same level of encoding compression and would not be able to express the full complexity of numeric ranges like the scheme-specific mechanism defined in this document.
       </t>
       <t>
 The certificate profile and NODE-ID definition of TCPCL <xref target="RFC9174"/> uses the text form of EID to authenticate nodes based on EID.
@@ -882,6 +882,7 @@ The use of this form is defined in <xref target="sec-pkix-cert-profile"/>.
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.8174.xml"/>
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.8610.xml"/>
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.8949.xml"/>
+        <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.9164.xml"/>
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.9171.xml"/>
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.9174.xml"/>
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.9525.xml"/>
