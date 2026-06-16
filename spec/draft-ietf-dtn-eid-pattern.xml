@@ -180,7 +180,7 @@ There are also scheme-independent match-all forms that function without a proces
       </t>
       <t>
 An EID Pattern processor <bcp14>MAY</bcp14> normalize the internal representation of a pattern to an equivalent one without keeping track of the original pattern information or encoding.
-If an pattern-using application needs to ensure that original encodings are kept, that needs to happen outside of the pattern processor.
+If a pattern-using application needs to ensure that original encodings are kept, that needs to happen outside of the pattern processor.
 See <xref target="sec-ops-envelope-pat"/> for recommendations about this need.
       </t>
       <section anchor="sec-pattern-top">
@@ -876,16 +876,15 @@ The use of this form is defined in <xref target="sec-pkix-cert-profile"/>.
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.2119.xml"/>
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.3629.xml"/>
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.3986.xml"/>
-        <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.4632.xml"/>
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.5234.xml"/>
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.5280.xml"/>
+        <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.5912.xml"/>
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.8174.xml"/>
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.8610.xml"/>
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.8949.xml"/>
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.9164.xml"/>
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.9171.xml"/>
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.9174.xml"/>
-        <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.9525.xml"/>
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.9758.xml"/>
         <reference anchor="X.680" target="https://www.itu.int/rec/T-REC-X.680-201508-I/en">
           <front>
@@ -902,13 +901,14 @@ The use of this form is defined in <xref target="sec-pkix-cert-profile"/>.
         <name>Informative References</name>
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.3552.xml"/>
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.4592.xml"/>
+        <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.4632.xml"/>
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.5050.xml"/>
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.5706.xml"/>
-        <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.5912.xml"/>
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.6570.xml"/>
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.7942.xml"/>
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.8126.xml"/>
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.9172.xml"/>
+        <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.9525.xml"/>
         <reference anchor="github-ricktaylor-hardy" target="https://github.com/ricktaylor/hardy">
           <front>
             <title>BPv7 DTN server implementation</title>
