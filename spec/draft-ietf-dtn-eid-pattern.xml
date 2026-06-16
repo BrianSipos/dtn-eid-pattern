@@ -218,20 +218,25 @@ eid-pattern-item = any-ssp-item
 ; constrained by the structure below, not enforced by ABNF
 
 eid-item-structure = scheme ":" *ssp-char
-ssp-char = <UTF8-octets excluding "|">
+ssp-char = <UTF8-octets excluding %x00 and %x7C "|">
 ]]></sourcecode>
           <t>
 Because the delimiter is used between items, an EID pattern with one item has an identical text form to that item.
 The correspondence in text form between a single EID and an EID pattern item which matches that single EID <bcp14>SHALL</bcp14> be enforced by any future scheme-specific pattern syntax registered with IANA.
           </t>
           <t>
-Any current or future text form scheme-specific pattern structure <bcp14>SHALL</bcp14> conform to the existing URI structure of a scheme name (matching the <tt>scheme</tt> rule from URI) followed by a colon (":") followed by a scheme-specific part.
-The text form pattern item scheme-specific part <bcp14>SHALL</bcp14> contain UTF8 characters <xref target="RFC3629"/> excluding the separator "|".
+Any current or future text form scheme-specific pattern structure <bcp14>SHALL</bcp14> conform to the URI-like structure of a scheme name (matching the <tt>scheme</tt> rule from URI) followed by a colon (":") followed by a scheme-specific part.
+The text form scheme-specific part <bcp14>SHALL</bcp14> contain UTF8 characters <xref target="RFC3629"/> excluding the null character and the separator "|".
 Because of that constraint, the number of items in a text form pattern can be determined by counting the number of "|" separators present (with a special case for the empty pattern).
           </t>
           <t>
 Beyond that simple constraint, all other characters (including those prohibited from URI syntax) can be part of a scheme-specific pattern definition.
 It is <bcp14>RECOMMENDED</bcp14> that future scheme-specific pattern definitions consider human-readability of the scheme-specific character set.
+This means avoid using control characters or characters which are not visually distinct to a layperson.
+          </t>
+          <t>
+Any pattern processor which encounters a scheme name that it cannot handle <bcp14>MAY</bcp14> skip its scheme-specific part by advancing to the subsequent "|" character, if present, or to the end-of-text.
+It is an implementation matter to determine how to react to an unsupported scheme, including total failure or simply logging the event and skipping the item (see <xref target="sec-ops-scheme-support"/>).
           </t>
         </section>
         <section>
@@ -255,6 +260,10 @@ Because there is otherwise always an outer array when a scheme-specific item is 
           </t>
           <t>
 Any current or future CBOR form scheme-specific pattern structure <bcp14>SHALL</bcp14> conform to the existing EID structure of a two-item array containing a scheme number and a scheme-specific part as a single CBOR item.
+          </t>
+          <t>
+Any pattern processor which encounters a scheme code that it cannot handle <bcp14>MAY</bcp14> skip its scheme-specific part by ignoring the second item of the array.
+It is an implementation matter to determine how to react to an unsupported scheme, including total failure or simply logging the event and skipping the item (see <xref target="sec-ops-scheme-support"/>).
           </t>
         </section>
       </section>
