@@ -409,11 +409,18 @@ The conceptual model of the IPN pattern is that each of the elements of the SSP 
         <t>
 Within a single element of the IPN pattern, the range intervals <bcp14>SHALL</bcp14> be disjoint and non-contiguous.
 Any overlapping or contiguity of intervals within a set can be coalesced into a single covering interval with the same meaning.
-The text form of a range can, but <bcp14>SHOULD NOT</bcp14>, contain overlapping or contiguous intervals.
-The CBOR form of a range does not allow overlapping or contiguous intervals because of its compressed structure.
+The text form of a range (<xref target="sec-pattern-ipn-text"/>) can, but <bcp14>SHOULD NOT</bcp14>, contain overlapping or contiguous intervals.
+The CBOR form of a range (<xref target="sec-pattern-ipn-cbor"/>) does not allow overlapping or contiguous intervals because of its compressed structure.
+        </t>
+        <aside>
+          <t>
+A machine encoding the text form can easily satisfy the constraint across range intervals, but allowance is made for human editing or merging of ranges which result in valid but non-canonical ranges.
+          </t>
+        </aside>
+        <t>
 Within a single element of the IPN pattern, any range interval that includes values outside the element domain <bcp14>SHALL</bcp14> be reduced to fit the domain.
 The decoder for any form of an IPN pattern <bcp14>SHALL</bcp14> normalize all interval sets to satisfy information model requirements.
-The decoder for any form of an IPN pattern <bcp14>SHOULD</bcp14> treat the failure of any element of a pattern as a failure to decode the whole pattern.
+The decoder for any form of an IPN pattern <bcp14>SHALL</bcp14> treat the failure of any element of a pattern as a failure to decode the whole pattern item.
         </t>
         <t>
 To ensure interoperability, all implementations <bcp14>SHALL</bcp14> support at least 10 intervals per range in each IPN element.
@@ -450,7 +457,7 @@ Two IPN patterns intersect if all of their corresponding elements intersect, and
 Likewise, one IPN pattern is a subset (or proper subset) of another pattern if all of the elements is a subset (or proper subset) of the other's corresponding element.
           </t>
         </section>
-        <section>
+        <section anchor="sec-pattern-ipn-text">
           <name>Text Form</name>
           <t>
 The text form of the IPN pattern conforms to the ABNF in <xref target="fig-pattern-ipn-text"/>, which is a superset of the IPN scheme itself as defined in <xref section="4" target="RFC9758"/> but with a different structure.
@@ -510,7 +517,7 @@ The canonical text form <bcp14>SHALL</bcp14> order all intervals in ascending nu
 The canonical text form <bcp14>SHALL</bcp14> encode all intervals with the lower bound before the upper bound.
           </t>
         </section>
-        <section>
+        <section anchor="sec-pattern-ipn-cbor">
           <name>CBOR Form</name>
           <t>
 The CBOR form of the IPN pattern conforms to the CDDL in <xref target="fig-pattern-ipn-cbor"/>.
