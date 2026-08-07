@@ -833,9 +833,9 @@ This is discussed for DNS-IDs in <xref section="7.1" target="RFC9525"/>.
         </t>
         <t>
 The pattern item separator "|" is disallowed entirely within a URI, and reserved characters "[" and "]" are disallowed within the authority and path segments by <xref target="RFC3986"/>.
-Despite this, there can still URI processors which are lax about enforcing those restrictions and could allow an EID pattern to be decoded in a place where an actual EID is expected.
-Doing so could lead to unwanted side-effects when the EID is handled by a BP Agent.
-To mitigate this in text form, an EID pattern can be encoded using the initial separator "|" to distinguish it from any possible EID value or at least ensure that the text before the first colon (":") does not match one of the IANA registered EID schemes (see <xref target="sec-pattern-top-text"/> and <xref target="sec-ops-encoptions"/>).
+Despite this, a generic URI processor could be lax about enforcing those restrictions and could allow an EID pattern to be decoded in a place where an actual EID is expected.
+Doing so could lead to unwanted side-effects when the EID is handled by a BP Agent, even if the decoding and validation fails partway through.
+To mitigate this in text form, an EID pattern can be encoded using the initial separator "|" to distinguish it from any possible EID value, or at least ensure that the text before the first colon (":") does not match one of the IANA registered EID schemes (see <xref target="sec-pattern-top-text"/> and <xref target="sec-ops-encoptions"/>), and allow the decoding to fail as early as possible.
         </t>
         <t>
 The URI authority part and path segments are percent-encoded text and need to be handled by EID processors as such for both pattern matching and equality comparison.
