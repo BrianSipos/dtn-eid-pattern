@@ -230,7 +230,7 @@ The rule allows the first item to be absent, which means that the first characte
 This condition has no special logic when decoding, there is just no first item to decode, but does allow a text form of EID pattern which is unambiguously <em>not</em> a URI because it contains an excluded character (see also <xref target="sec-security-misinterpret"/>).
           </t>
           <t>
-Because the separator is used between items, an EID pattern with one item has an identical text form to that item.
+Because the separator is used between items, an EID pattern with one item and no initial separator has an identical text form to that item.
 The correspondence in text form between a single EID and an EID pattern item which matches that single EID <bcp14>SHALL</bcp14> be enforced by any future scheme-specific pattern syntax registered with IANA.
           </t>
           <t>
