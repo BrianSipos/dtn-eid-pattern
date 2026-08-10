@@ -120,9 +120,9 @@ non-zero-decimal = (%x31-39 *DIGIT)
         </sourcecode>
         <t>
 The definition for the rule <tt>UTF8-octets</tt> is taken from UTF8 <xref target="RFC3629"/>.
-The definitions for the rule <tt>scheme</tt> is taken from URI <xref target="RFC3986"/>.
+The definition for the rule <tt>scheme</tt> is taken from URI <xref target="RFC3986"/>.
 The definition for the rule <tt>digit</tt> is taken from ABNF <xref target="RFC5234"/>.
-The definition for the rules <tt>ipn-decimal</tt> and <tt>nbr-delim</tt> are copied from BP <xref target="RFC9171"/>.
+The definitions for the rules <tt>ipn-decimal</tt> and <tt>nbr-delim</tt> are copied from BP <xref target="RFC9171"/>.
         </t>
       </section>
       <section>
@@ -148,7 +148,8 @@ The definition for the rule <tt>eid-structure</tt> is copied from BP <xref targe
 The key words "<bcp14>MUST</bcp14>", "<bcp14>MUST NOT</bcp14>", "<bcp14>REQUIRED</bcp14>", "<bcp14>SHALL</bcp14>", "<bcp14>SHALL NOT</bcp14>", "<bcp14>SHOULD</bcp14>", "<bcp14>SHOULD NOT</bcp14>", "<bcp14>RECOMMENDED</bcp14>", "<bcp14>NOT RECOMMENDED</bcp14>", "<bcp14>MAY</bcp14>", and "<bcp14>OPTIONAL</bcp14>" in this document are to be interpreted as described in BCP 14 <xref target="RFC2119"/> <xref target="RFC8174"/> when, and only when, they appear in all capitals, as shown here.
         </t>
         <t>
-The terms "Endpoint" and "Endpoint ID" in this document refer to the meanings defined in <xref section="3.1" target="RFC9171"/>.
+The terms "Endpoint" and "Endpoint ID" (EID) use the meanings defined in <xref section="3.1" target="RFC9171"/>.
+The terms "scheme" and "scheme-specific part" (SSP) use the meanings from defined in <xref section="4.2.5.1" target="RFC9171"/> and are extended for the purpose of EID patterns.
         </t>
         <t>
 Other terms specific to this document are the following.
@@ -198,36 +199,44 @@ Implementations <bcp14>SHOULD</bcp14> support at least 100 items per pattern.
         <t>
 Although the encoding forms are necessarily ordered, the matching logic for an EID Pattern is independent of the order of its items.
 An EID pattern <bcp14>SHALL</bcp14> be considered to match an EID if any of its constituent items match the EID.
-The sequence is also allowed to be empty, which by that definition will match no EIDs.
+The sequence is also allowed to be empty, having no items, which by that definition will match-none.
+This is a useful case when the presence of an EID pattern is needed but a specific instance is desired to not match any EID.
         </t>
         <t>
 Because matching against an "any-scheme" item (see <xref target="sec-pattern-anyscheme"/>) will necessarily make any scheme-specific patterns redundant, the text and CBOR forms of the EID pattern have a compressed form of any-scheme matching and disallow combining the any-scheme pattern with other items.
         </t>
-        <section>
+        <section anchor="sec-pattern-top-text">
           <name>Text Form</name>
           <t>
-The text form of the EID pattern is the following ABNF rule, which uses the URI reserved character "|" to delimit items in the sequence.
-This rule also allows a pattern to be empty, having no items.
+The text form of the EID pattern matches the following ABNF rule.
+This rule uses the URI reserved character "|" to separate items in the sequence.
+This rule allows a pattern to be empty, having no items.
           </t>
           <sourcecode type="abnf"><![CDATA[
 eid-pattern = any-scheme-item / eid-pattern-set
-; The set is allowed to be empty
-eid-pattern-set = [ eid-pattern-item *( "|" eid-pattern-item ) ]
+; The set is allowed to be empty and the first item can be absent
+eid-pattern-set = [eid-pattern-item] *( "|" eid-pattern-item )
 eid-pattern-item = any-ssp-item
 ; Extension point at eid-pattern-item for scheme-specific rules
 ; constrained by the structure below, not enforced by ABNF
 
 eid-item-structure = scheme ":" *ssp-char
-ssp-char = <UTF8-octets excluding %x00 and %x7C "|">
+ssp-char = <UTF8-octets excluding "ssp-nochar" characters>
+; exclude null, blank spaces, and "|"
+ssp-nochar = %x00 / %x09-0D / %x20 / %x7C
 ]]></sourcecode>
           <t>
-Because the delimiter is used between items, an EID pattern with one item has an identical text form to that item.
+The rule allows the first item to be absent, which means that the first character of the pattern will be the reserved separator.
+This condition has no special logic when decoding, there is just no first item to decode, but does allow a text form of EID pattern which is unambiguously <em>not</em> a URI because it contains an excluded character (see also <xref target="sec-security-misinterpret"/>).
+          </t>
+          <t>
+Because the separator is used between items, an EID pattern with one item and no initial separator has an identical text form to that item.
 The correspondence in text form between a single EID and an EID pattern item which matches that single EID <bcp14>SHALL</bcp14> be enforced by any future scheme-specific pattern syntax registered with IANA.
           </t>
           <t>
 Any current or future text form scheme-specific pattern structure <bcp14>SHALL</bcp14> conform to the URI-like structure of a scheme name (matching the <tt>scheme</tt> rule from URI) followed by a colon (":") followed by a scheme-specific part.
-The text form scheme-specific part <bcp14>SHALL</bcp14> contain UTF8 characters <xref target="RFC3629"/> excluding the null character and the separator "|".
-Because of that constraint, the number of items in a text form pattern can be determined by counting the number of "|" separators present (with a special case for the empty pattern).
+The text form scheme-specific part <bcp14>SHALL</bcp14> contain UTF8 characters <xref target="RFC3629"/> excluding the null character, blank spaces, and the separator "|" (those matching the <tt>ssp-nochar</tt> rule).
+Because of that constraint, the number of items in a text form pattern can be determined by counting the number of "|" separators present (with a special case for the empty pattern and the absent first item).
           </t>
           <t>
 Beyond that simple constraint, all other characters (including those prohibited from URI syntax) can be part of a scheme-specific pattern definition.
@@ -239,10 +248,10 @@ Any pattern processor which encounters a scheme name that it cannot handle <bcp1
 It is an implementation matter to determine how to react to an unsupported scheme, including total failure or simply logging the event and skipping the item (see <xref target="sec-ops-scheme-support"/>).
           </t>
         </section>
-        <section>
+        <section anchor="sec-pattern-top-cbor">
           <name>CBOR Form</name>
           <t>
-The CBOR form of the EID pattern is the following, which uses an enveloping array to contain the items.
+The CBOR form of the EID pattern matches the following CDDL, which uses an enveloping array to contain the items.
 Although the any-scheme pattern includes a compressed encoding, avoiding the outer array, it still follows the conceptual model of a set of items (in which there is allowed only one item).
 The empty array allows a pattern to be empty, having no items.
           </t>
@@ -604,12 +613,12 @@ The largest possible range covering the entire 64-bit number space can be encode
         </section>
       </section>
     </section>
-    <section anchor="sec-pkix-cert-profile">
+    <section anchor="sec-pkix">
       <name>PKIX Certificate Profile Update</name>
       <t>
 This document expands upon the PKIX profile of TCPCLv4 <xref target="RFC9174"/> to allow an EID Pattern in any certificate where an Node ID is required or allowed.
       </t>
-      <section>
+      <section anchor="sec-pkix-on">
         <name>New Other Name Form</name>
         <t>
 This document defines a PKIX Other Name Form identifier, <tt>id-on-bundleEIDPattern</tt> in <xref target="sec-asn1-mod"/>; this identifier can be used as the <tt>type-id</tt> in a Subject Alternative Name (SAN) entry of type <tt>otherName</tt>.
@@ -621,7 +630,7 @@ The other name form is encoded as an <tt>UTF8String</tt> because it is <em>not</
           </t>
         </aside>
       </section>
-      <section>
+      <section anchor="sec-pkix-id">
         <name>New Identifier Type</name>
         <t>
 This specification defines an EID-PATTERN-ID of a certificate as being the Subject Alternative Name entry of type <tt>otherName</tt> with a name form of <tt>BundleEIDPattern</tt> and a value limited to an EID Pattern text form.
@@ -638,7 +647,7 @@ Unless prohibited by CA policy, a TCPCL end-entity certificate <bcp14>SHALL</bcp
 All other requirements of that certificate profile are unchanged by this document.
         </t>
       </section>
-      <section>
+      <section anchor="sec-pkix-nc">
         <name>New Name Constraints Logic</name>
         <t>
 This document defines a logic for using EID Pattern(s) within the Name Constraints extension of <xref section="4.2.1.10" target="RFC5280"/> for CA certificates.
@@ -666,6 +675,55 @@ The refusal or not to issue such subordinate certificates does not affect the ul
       <t>
 This section explains various operational topics based on guidance of the IETF Operations and Management Area Working Group <xref target="RFC5706"/>.
       </t>
+      <section anchor="sec-ops-multiplicity">
+        <name>Multiplicity and Combinations of Pattern Instances</name>
+        <t>
+Each EID pattern can be composed of a number of independent pattern items (<xref target="sec-pattern-top"/>) which means that, unlike CIDR notation, a single EID pattern instance is sufficient to handle matching several conditions at once (or the match-none case).
+        </t>
+        <t>
+If a use case calls for a logically optional pattern, that can be handled by an empty match-none pattern.
+The use can still make the presence of the pattern optional but the absence of a pattern will behave identically to the presence of empty pattern.
+Any additional significance to the presence or absence of the pattern will need to be defined in the context of that use.
+        </t>
+        <t>
+If a use case calls for a logical "or" between distinct conditions, that can be handled by including multiple items in one pattern.
+This specification gives no significance to the order of items within a pattern, and allows an implementation to reorder, normalize, canonicalize, or elide pattern items.
+Any significance to the number or order of separate patterns will need to be defined in the context of that use.
+        </t>
+        <t>
+If a use case calls for a logical "and" between distinct conditions, that is a case where the logic of patterns will need to be expanded upon by that use to define.
+An example of this is the logic of combining <xref target="sec-pkix-nc">PKIX name constraints</xref> across a chain of CA certificates, where the "permitted subtrees" need to all match an end-entity EID for that EID to be valid.
+        </t>
+        <t>
+If a use case calls for a logical "not match" condition, or a mix of positive and negative matching, that use will need to define the higher-level logic of how patterns and pattern matching is combined.
+An example of this is the logic of <xref target="sec-pkix-nc">PKIX name constraints</xref> across a chain of CA certificates, where the "excluded subtrees" need to not match an end-entity EID for that EID to be valid.
+        </t>
+      </section>
+      <section anchor="sec-ops-norm-canon">
+        <name>Choice of Normalization</name>
+        <t>
+It is an implementation decision for when and how to perform normalization of patterns and pattern items.
+The information model defines an envelope of what is allowed in a pattern and each item, but there is much allowance for variety of behavior especially related to normalizing logical overlaps between items and ordering of content within each item's SSP.
+        </t>
+      </section>
+      <section anchor="sec-ops-encoptions">
+        <name>Choices of Encoding Options</name>
+        <t>
+The text form of EID Patterns have a number of different options when encoding a pattern value, while the CBOR form is more constrained to use canonical encodings.
+It is expected that encoding options will be exposed via some application programming interface of a pattern processor and the choice of which options to use will be specific to each use case.
+        </t>
+        <t>
+One option which applies to both text and CBOR forms is the ordering of items for a single pattern.
+A simple implementation could preserve ordering between decoding and encoding, or between internal construction and encoding.
+A more complex implementation could choose to sort items by scheme, some complexity metric, or any other choice of ranking.
+It is possible for an implementation to manage items internally using a sorted container, which will carry over to the sorting of encoded items.
+        </t>
+        <t>
+An option for the text form is to include an initial separator when encoding.
+This ensures that the encoded EID pattern will be distinct from any valid EID and only usable as a pattern.
+The downsides to using an initial separator are readability, in the case when its use as an EID pattern is unambiguous, and the additional character length.
+        </t>
+      </section>
       <section anchor="sec-ops-scheme-support">
         <name>Supported Schemes of Pattern Processors</name>
         <t>
@@ -702,8 +760,11 @@ While an interior trunking router could provide very high limits with the intent
         <name>EID Pattern Enveloping</name>
         <t>
 When an EID pattern is enveloped into a data store or protocol data unit, it is important to avoid requiring the processor of that containing context to understand the nuances of EID Pattern syntax.
-For the text form of EID Patterns this is straightforward because the encoded text string can simply be handled without concern for its contents.
-The use of an EID Pattern as a PKIX Other Name Form in <xref target="sec-pkix-cert-profile"/> makes use of this strategy.
+        </t>
+        <t>
+For the text form of EID Patterns this is straightforward in some cases because the encoded text string can simply be handled as an opaque value without concern for its contents.
+The use of an EID Pattern as a PKIX Other Name Form in <xref target="sec-pkix"/> makes use of this strategy because the ASN.1 envelope encodes the explicit length of the text.
+If an EID Pattern is included as part of larger text (<em>e.g.</em> in a document with or without markup) then the constraints on the content of the text form (no null or blank space characters, as defined in <xref target="sec-pattern-top-text"/>) allow the enveloping context to use blank space to delimit the pattern itself.
         </t>
         <t>
 For the binary form of EID Patterns, when the encoded item is not handled as a simple byte string it is <bcp14>RECOMMENDED</bcp14> to embed the EID Pattern within a CBOR byte string as a single item.
@@ -741,7 +802,7 @@ This is also consistent with how the existing Previous Node block-type-specific 
       <t>
 This section separates security considerations into categories based on guidance of BCP 72 <xref target="RFC3552"/>.
       </t>
-      <section>
+      <section anchor="sec-security-dos">
         <name>Denial of Service Possibilities</name>
         <t>
 Because EID patterns are expected to be used as external input to a BP Agent, there is the possibility of an encoded value to either be not-well-formed or well-formed but purposefully resource intensive.
@@ -759,7 +820,7 @@ A decoder could attempt to fully decode this valid pattern but by doing so exhau
 A similar mitigation here is to bound acceptable sizes above the CBOR layer within the pattern decoding.
         </t>
       </section>
-      <section>
+      <section anchor="sec-security-misinterpret">
         <name>Misinterpretion of Encoded Values</name>
         <t>
 It is critical for applications handling EIDs and EID Patterns to positively distinguish between the two based on the context in which the value is being used.
@@ -771,8 +832,10 @@ CAs which issue certificates containing EID Patterns need to consider the implic
 This is discussed for DNS-IDs in <xref section="7.1" target="RFC9525"/>.
         </t>
         <t>
-Although the reserved characters "[" and "]" are disallowed within the URI authority and path segments by <xref target="RFC3986"/> there are still URI processors which could be lax about enforcing that restriction and could allow an EID pattern to be decoded in a place where an actual EID is expected.
-This could allow unwanted side-effects when the EID is handled by a BP Agent.
+The pattern item separator "|" is disallowed entirely within a URI, and reserved characters "[" and "]" are disallowed within the authority and path segments by <xref target="RFC3986"/>.
+Despite this, a generic URI processor could be lax about enforcing those restrictions and could allow an EID pattern to be decoded in a place where an actual EID is expected.
+Doing so could lead to unwanted side-effects when the EID is handled by a BP Agent, even if the decoding and validation fails partway through.
+To mitigate this in text form, an EID pattern can be encoded using the initial separator "|" to distinguish it from any possible EID value, or at least ensure that the text before the first colon (":") does not match one of the IANA registered EID schemes (see <xref target="sec-pattern-top-text"/> and <xref target="sec-ops-encoptions"/>), and allow the decoding to fail as early as possible.
         </t>
         <t>
 The URI authority part and path segments are percent-encoded text and need to be handled by EID processors as such for both pattern matching and equality comparison.
@@ -863,7 +926,7 @@ This other name forms table is updated to include a row for containing an Endpoi
         </table>
         <t>
 The formal structure of the associated other name form is in <xref target="sec-asn1-mod"/>.
-The use of this form is defined in <xref target="sec-pkix-cert-profile"/>.
+The use of this form is defined in <xref target="sec-pkix"/>.
         </t>
       </section>
     </section>
@@ -997,7 +1060,7 @@ END
         <t>
 This section contains examples specific to the IPN pattern of <xref target="sec-pattern-ipn"/>.
         </t>
-        <section>
+        <section anchor="sec-ex-pattern-ipn-exact">
           <name>Exact Match</name>
           <t>
 This trivial example matches only one EID (which itself has the same text and CBOR forms)
@@ -1309,6 +1372,17 @@ and its CBOR form is:
   [null, 1],
   [2, [0, 3, 4]]
 ]
+</sourcecode>
+        </section>
+        <section>
+          <name>Initial Separator in Text Form</name>
+          <t>
+This example is specific to the text form defined in <xref target="sec-pattern-top-text"/> which allows the item separator character to be the first in the text.
+Having this as the initial character makes the text distinct from any possible EID (and any URI).
+This pattern is otherwise identical to the example in <xref target="sec-ex-pattern-ipn-exact"/>, and the choice of using the leading separator is an encoder decision.
+          </t>
+          <sourcecode type="eidpat">
+|ipn:0.3.4
 </sourcecode>
         </section>
       </section>
