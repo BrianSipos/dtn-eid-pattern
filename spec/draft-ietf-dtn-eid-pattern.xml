@@ -214,7 +214,7 @@ This rule allows a pattern to be empty, having no items.
           </t>
           <sourcecode type="abnf"><![CDATA[
 eid-pattern = any-scheme-item / eid-pattern-set
-; The set is allowed to be empty and the first item can be absent
+; The set is allowed to be empty (no characters)
 eid-pattern-set = [eid-pattern-item] *( "|" eid-pattern-item )
 eid-pattern-item = any-ssp-item
 ; Extension point at eid-pattern-item for scheme-specific rules
@@ -222,12 +222,12 @@ eid-pattern-item = any-ssp-item
 
 eid-item-structure = scheme ":" *ssp-char
 ssp-char = <UTF8-octets excluding "ssp-nochar" characters>
-; exclude null, blank spaces, and "|"
-ssp-nochar = %x00 / %x09-0D / %x20 / %x7C
+; exclude null, non-printable, blank spaces, and "|"
+ssp-nochar = %x00-%x20 / %x7F / %x7C
 ]]></sourcecode>
           <t>
-The rule allows the first item to be absent, which means that the first character of the pattern will be the reserved separator.
-This condition has no special logic when decoding, there is just no first item to decode, but does allow a text form of EID pattern which is unambiguously <em>not</em> a URI because it contains an excluded character (see also <xref target="sec-security-misinterpret"/>).
+The rule allows the leading item to be absent, which means that the first character of the pattern will be the reserved separator.
+This condition has no special logic when decoding, there is just no item before the first separator, but does allow a text form of EID pattern which is unambiguously <em>not</em> a URI because it contains an excluded character (see also <xref target="sec-security-misinterpret"/>).
           </t>
           <t>
 Because the separator is used between items, an EID pattern with one item and no initial separator has an identical text form to that item.
@@ -235,7 +235,7 @@ The correspondence in text form between a single EID and an EID pattern item whi
           </t>
           <t>
 Any current or future text form scheme-specific pattern structure <bcp14>SHALL</bcp14> conform to the URI-like structure of a scheme name (matching the <tt>scheme</tt> rule from URI) followed by a colon (":") followed by a scheme-specific part.
-The text form scheme-specific part <bcp14>SHALL</bcp14> contain UTF8 characters <xref target="RFC3629"/> excluding the null character, blank spaces, and the separator "|" (those matching the <tt>ssp-nochar</tt> rule).
+The text form scheme-specific part <bcp14>SHALL</bcp14> contain UTF8 characters <xref target="RFC3629"/> excluding the null character, control characters, blank spaces, and the separator "|" (those matching the <tt>ssp-nochar</tt> rule).
 Because of that constraint, the number of items in a text form pattern can be determined by counting the number of "|" separators present (with a special case for the empty pattern and the absent first item).
           </t>
           <t>
