@@ -22,6 +22,7 @@ CCSDS
 cddl
 CDDL
 CIDR
+COSE
 de
 delim
 delims

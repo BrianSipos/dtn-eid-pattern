@@ -33,7 +33,10 @@
 This document extends the Bundle Protocol Endpoint ID (EID) concept into an EID Pattern, which is used to categorize any EID as matching a specific pattern or not.
 EID Patterns are suitable for expressing configuration, for being used on-the-wire by protocols, and for being easily understandable by a layperson.
 EID Patterns include scheme-specific optimizations for expressing set membership and each scheme pattern includes text and binary encoding forms; the pattern for the "ipn" EID scheme being designed to be highly compressible in its binary form.
+      </t>
+      <t>
 This document also defines a Public Key Infrastructure Using X.509 (PKIX) Other Name form to contain an EID Pattern and a handling rule to use a pattern to match an EID.
+The Other Name form is used to update the PKIX profiles of RFC 9174 and <xref target="I-D.ietf-dtn-bpsec-cose"/>.
       </t>
     </abstract>
   </front>
@@ -616,7 +619,7 @@ The largest possible range covering the entire 64-bit number space can be encode
     <section anchor="sec-pkix">
       <name>PKIX Certificate Profile Update</name>
       <t>
-This document expands upon the PKIX profile of TCPCLv4 <xref target="RFC9174"/> to allow an EID Pattern in any certificate where an Node ID is required or allowed.
+This document expands upon the PKIX profile of TCPCLv4 <xref target="RFC9174"/> and the BPSec COSE Context <xref target="I-D.ietf-dtn-bpsec-cose"/> to allow an EID Pattern in any certificate where an Node ID is required or allowed.
       </t>
       <section anchor="sec-pkix-on">
         <name>New Other Name Form</name>
@@ -644,6 +647,11 @@ An EID Pattern scheme can refine this matching logic with rules regarding how En
         <t>
 As an augmentation of the TCPCL certificate profile in <xref section="4.4.2" target="RFC9174"/>:
 Unless prohibited by CA policy, a TCPCL end-entity certificate <bcp14>SHALL</bcp14> contain either a NODE-ID or an EID-PATTERN-ID that authenticates the node ID of the peer.
+All other requirements of that certificate profile are unchanged by this document.
+        </t>
+        <t>
+As an augmentation of the BPSec certificate profile in <xref section="4" target="I-D.ietf-dtn-bpsec-cose"/>:
+A BPSec end-entity certificate <bcp14>SHALL</bcp14> contain either a NODE-ID or an EID-PATTERN-ID that authenticates the BPSec entity associated with a security operation.
 All other requirements of that certificate profile are unchanged by this document.
         </t>
       </section>
@@ -957,7 +965,6 @@ The use of this form is defined in <xref target="sec-pkix"/>.
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.3986.xml"/>
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.5234.xml"/>
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.5280.xml"/>
-        <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.5912.xml"/>
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.8174.xml"/>
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.8610.xml"/>
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.8949.xml"/>
@@ -965,6 +972,7 @@ The use of this form is defined in <xref target="sec-pkix"/>.
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.9171.xml"/>
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.9174.xml"/>
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.9758.xml"/>
+        <xi:include href="https://bib.ietf.org/public/rfc/bibxml3/reference.I-D.ietf-dtn-bpsec-cose.xml"/>
         <reference anchor="X.680" target="https://www.itu.int/rec/T-REC-X.680-201508-I/en">
           <front>
             <title>Information technology -- Abstract Syntax Notation One (ASN.1): Specification of basic notation</title>
@@ -983,6 +991,7 @@ The use of this form is defined in <xref target="sec-pkix"/>.
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.4632.xml"/>
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.5050.xml"/>
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.5706.xml"/>
+        <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.5912.xml"/>
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.6570.xml"/>
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.7942.xml"/>
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.8126.xml"/>
