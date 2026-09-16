@@ -36,7 +36,7 @@ EID Patterns include scheme-specific optimizations for expressing set membership
       </t>
       <t>
 This document also defines a Public Key Infrastructure Using X.509 (PKIX) Other Name form to contain an EID Pattern and a handling rule to use a pattern to match an EID.
-The Other Name form is used to update the PKIX profiles of RFC 9174 and [dtn-bpsec-cose].
+The Other Name form is used to update the PKIX profiles of RFC 9174 and <xref target="I-D.ietf-dtn-bpsec-cose"/>.
       </t>
     </abstract>
   </front>
@@ -967,7 +967,7 @@ The use of this form is defined in <xref target="sec-pkix"/>.
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.9171.xml"/>
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.9174.xml"/>
         <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.9758.xml"/>
-        <xi:include href="https://bib.ietf.org/public/rfc/bibxml3/reference.I-D.dtn-bpsec-cose.xml"/>
+        <xi:include href="https://bib.ietf.org/public/rfc/bibxml3/reference.I-D.ietf-dtn-bpsec-cose.xml"/>
         <reference anchor="X.680" target="https://www.itu.int/rec/T-REC-X.680-201508-I/en">
           <front>
             <title>Information technology -- Abstract Syntax Notation One (ASN.1): Specification of basic notation</title>
