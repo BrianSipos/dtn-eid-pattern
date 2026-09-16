@@ -619,7 +619,7 @@ The largest possible range covering the entire 64-bit number space can be encode
     <section anchor="sec-pkix">
       <name>PKIX Certificate Profile Update</name>
       <t>
-This document expands upon the PKIX profile of TCPCLv4 <xref target="RFC9174"/> to allow an EID Pattern in any certificate where an Node ID is required or allowed.
+This document expands upon the PKIX profile of TCPCLv4 <xref target="RFC9174"/> and the BPSec COSE Context <xref target="I-D.ietf-dtn-bpsec-cose"/> to allow an EID Pattern in any certificate where an Node ID is required or allowed.
       </t>
       <section anchor="sec-pkix-on">
         <name>New Other Name Form</name>
@@ -647,6 +647,11 @@ An EID Pattern scheme can refine this matching logic with rules regarding how En
         <t>
 As an augmentation of the TCPCL certificate profile in <xref section="4.4.2" target="RFC9174"/>:
 Unless prohibited by CA policy, a TCPCL end-entity certificate <bcp14>SHALL</bcp14> contain either a NODE-ID or an EID-PATTERN-ID that authenticates the node ID of the peer.
+All other requirements of that certificate profile are unchanged by this document.
+        </t>
+        <t>
+As an augmentation of the BPSec certificate profile in <xref section="4" target="I-D.ietf-dtn-bpsec-cose"/>:
+A BPSec end-entity certificate <bcp14>SHALL</bcp14> contain either a NODE-ID or an EID-PATTERN-ID that authenticates the BPSec entity associated with a security operation.
 All other requirements of that certificate profile are unchanged by this document.
         </t>
       </section>
